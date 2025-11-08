@@ -4,7 +4,6 @@ import userService from "../services/userService.js";
 import { sendSuccess } from "../utils/response.js";
 import { SUCCESS_MESSAGES } from "../config/constants.js";
 import type { AuthRequest } from "../middlewares/auth.middleware.js";
-import type { UserAttributes } from "../models/User.js";
 
 class AuthController {
   async register(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -52,7 +51,7 @@ class AuthController {
       }
 
       const user = await userService.getUserById(req.user.userId);
-      const userData = user.get({ plain: true }) as UserAttributes;
+      const userData = user.toObject();
       const { password, ...userWithoutPassword } = userData;
 
       sendSuccess(res, "Profile retrieved successfully", { user: userWithoutPassword });

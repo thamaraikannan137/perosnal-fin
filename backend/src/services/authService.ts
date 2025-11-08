@@ -1,6 +1,5 @@
 import { generateAccessToken, generateRefreshToken } from "../utils/jwt.js";
 import userService from "./userService.js";
-import type { UserAttributes } from "../models/User.js";
 
 class AuthService {
   async register(data: {
@@ -12,18 +11,18 @@ class AuthService {
     const user = await userService.createUser(data);
 
     const accessToken = generateAccessToken({
-      userId: user.id,
+      userId: user._id.toString(),
       email: user.email,
       role: user.role,
     });
 
     const refreshToken = generateRefreshToken({
-      userId: user.id,
+      userId: user._id.toString(),
       email: user.email,
       role: user.role,
     });
 
-    const userData = user.get({ plain: true }) as UserAttributes;
+    const userData = user.toObject();
     const { password, ...userWithoutPassword } = userData;
 
     return {
@@ -37,18 +36,18 @@ class AuthService {
     const user = await userService.verifyPassword(email, password);
 
     const accessToken = generateAccessToken({
-      userId: user.id,
+      userId: user._id.toString(),
       email: user.email,
       role: user.role,
     });
 
     const refreshToken = generateRefreshToken({
-      userId: user.id,
+      userId: user._id.toString(),
       email: user.email,
       role: user.role,
     });
 
-    const userData = user.get({ plain: true }) as UserAttributes;
+    const userData = user.toObject();
     const { password: _, ...userWithoutPassword } = userData;
 
     return {
@@ -65,7 +64,7 @@ class AuthService {
     const user = await userService.getUserById(decoded.userId);
 
     const newAccessToken = generateAccessToken({
-      userId: user.id,
+      userId: user._id.toString(),
       email: user.email,
       role: user.role,
     });

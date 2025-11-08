@@ -1,4 +1,4 @@
-import User from "../models/User.js";
+import User, { type IUser } from "../models/User.js";
 import { hashPassword, comparePassword } from "../utils/bcrypt.js";
 import { ConflictError, NotFoundError, UnauthorizedError } from "../utils/errors.js";
 import { USER_ROLES } from "../config/constants.js";
@@ -18,55 +18,58 @@ export interface UpdateUserData {
 }
 
 class UserService {
-  async createUser(data: CreateUserData): Promise<User> {
-    const existingUser = await User.findOne({ where: { email: data.email } });
+  async createUser(data: CreateUserData): Promise<IUser> {
+    const existingUser = await User.findOne({ email: data.email });
     if (existingUser) {
       throw new ConflictError("Email already exists");
     }
 
     const hashedPassword = await hashPassword(data.password);
 
-    return User.create({
+    const user = await User.create({
       email: data.email,
       password: hashedPassword,
       firstName: data.firstName,
       lastName: data.lastName,
       role: (data.role as typeof USER_ROLES[keyof typeof USER_ROLES]) || USER_ROLES.USER,
-    }) as Promise<User>;
+    });
+
+    return user;
   }
 
-  async getUserById(id: string): Promise<User> {
-    const user = await User.findByPk(id);
+  async getUserById(id: string): Promise<IUser> {
+    const user = await User.findById(id);
     if (!user) {
       throw new NotFoundError("User not found");
     }
-    return user as User;
+    return user;
   }
 
-  async getUserByEmail(email: string): Promise<User | null> {
-    return User.findOne({ where: { email } }) as Promise<User | null>;
+  async getUserByEmail(email: string): Promise<IUser | null> {
+    return User.findOne({ email });
   }
 
-  async updateUser(id: string, data: UpdateUserData): Promise<User> {
+  async updateUser(id: string, data: UpdateUserData): Promise<IUser> {
     const user = await this.getUserById(id);
 
     if (data.email && data.email !== user.email) {
-      const existingUser = await User.findOne({ where: { email: data.email } });
+      const existingUser = await User.findOne({ email: data.email });
       if (existingUser) {
         throw new ConflictError("Email already exists");
       }
     }
 
-    await user.update(data);
-    return (await user.reload()) as User;
+    Object.assign(user, data);
+    await user.save();
+    return user;
   }
 
   async deleteUser(id: string): Promise<void> {
     const user = await this.getUserById(id);
-    await user.destroy();
+    await user.deleteOne();
   }
 
-  async verifyPassword(email: string, password: string): Promise<User> {
+  async verifyPassword(email: string, password: string): Promise<IUser> {
     const user = await this.getUserByEmail(email);
     if (!user) {
       throw new UnauthorizedError("Invalid email or password");
@@ -84,19 +87,22 @@ class UserService {
     return user;
   }
 
-  async getAllUsers(page: number = 1, limit: number = 10): Promise<{ users: User[]; total: number; pages: number }> {
-    const offset = (page - 1) * limit;
-    const { count, rows } = await User.findAndCountAll({
-      limit,
-      offset,
-      attributes: { exclude: ["password"] },
-      order: [["createdAt", "DESC"]],
-    });
+  async getAllUsers(page: number = 1, limit: number = 10): Promise<{ users: IUser[]; total: number; pages: number }> {
+    const skip = (page - 1) * limit;
+    
+    const [users, total] = await Promise.all([
+      User.find()
+        .select("-password")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      User.countDocuments()
+    ]);
 
     return {
-      users: rows as User[],
-      total: count,
-      pages: Math.ceil(count / limit),
+      users,
+      total,
+      pages: Math.ceil(total / limit),
     };
   }
 }

@@ -1,104 +1,71 @@
-import { Model, DataTypes } from "sequelize";
-import type { Optional } from "sequelize";
-import sequelize from "../config/database.js";
+import mongoose, { Schema, Document } from "mongoose";
 import type { UserRole } from "../config/constants.js";
 import { USER_ROLES } from "../config/constants.js";
 
-export interface UserAttributes {
-  id: string;
+export interface IUser extends Document {
+  _id: mongoose.Types.ObjectId;
   email: string;
   password: string;
   firstName: string;
   lastName: string;
   role: UserRole;
   isActive: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface UserCreationAttributes
-  extends Optional<UserAttributes, "id" | "role" | "isActive" | "createdAt" | "updatedAt"> {}
-
-class User
-  extends Model<UserAttributes, UserCreationAttributes>
-  implements UserAttributes
-{
-  declare id: string;
-  declare email: string;
-  declare password: string;
-  declare firstName: string;
-  declare lastName: string;
-  declare role: UserRole;
-  declare isActive: boolean;
-  declare readonly createdAt: Date;
-  declare readonly updatedAt: Date;
-
-  declare static init: typeof Model.init;
-  declare static findOne: typeof Model.findOne;
-  declare static create: typeof Model.create;
-  declare static findByPk: typeof Model.findByPk;
-  declare static findAndCountAll: typeof Model.findAndCountAll;
-}
-
-User.init(
+const userSchema = new Schema<IUser>(
   {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
     email: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: String,
+      required: [true, "Email is required"],
       unique: true,
-      validate: {
-        isEmail: true,
-      },
+      lowercase: true,
+      trim: true,
+      match: [/^\S+@\S+\.\S+$/, "Please provide a valid email address"],
     },
     password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        len: [6, 100],
-      },
+      type: String,
+      required: [true, "Password is required"],
+      minlength: [6, "Password must be at least 6 characters"],
+      maxlength: [100, "Password must be less than 100 characters"],
     },
     firstName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        len: [1, 50],
-      },
+      type: String,
+      required: [true, "First name is required"],
+      trim: true,
+      minlength: [1, "First name must be at least 1 character"],
+      maxlength: [50, "First name must be less than 50 characters"],
     },
     lastName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        len: [1, 50],
-      },
+      type: String,
+      required: [true, "Last name is required"],
+      trim: true,
+      minlength: [1, "Last name must be at least 1 character"],
+      maxlength: [50, "Last name must be less than 50 characters"],
     },
     role: {
-      type: DataTypes.ENUM(...Object.values(USER_ROLES)),
-      defaultValue: USER_ROLES.USER,
-      allowNull: false,
+      type: String,
+      enum: Object.values(USER_ROLES),
+      default: USER_ROLES.USER,
+      required: true,
     },
     isActive: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-      allowNull: false,
+      type: Boolean,
+      default: true,
+      required: true,
     },
   },
   {
-    sequelize,
-    modelName: "User",
-    tableName: "users",
     timestamps: true,
-    indexes: [
-      {
-        unique: true,
-        fields: ["email"],
-      },
-    ],
+    collection: "users",
   }
 );
+
+// Create index on email for better query performance
+userSchema.index({ email: 1 }, { unique: true });
+
+// Export model
+const User = mongoose.model<IUser>("User", userSchema);
 
 export default User;

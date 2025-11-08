@@ -1,38 +1,27 @@
-import { Sequelize } from "sequelize";
+import mongoose from "mongoose";
 import env from "./env.js";
-
-const sequelize = new Sequelize(
-  env.DB_NAME,
-  env.DB_USER,
-  env.DB_PASSWORD,
-  {
-    host: env.DB_HOST,
-    port: parseInt(env.DB_PORT),
-    dialect: "postgres",
-    logging: env.NODE_ENV === "development" ? console.log : false,
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000,
-    },
-    dialectOptions: {
-      ssl: env.DB_SSL === "true" ? {
-        require: true,
-        rejectUnauthorized: false,
-      } : false,
-    },
-  }
-);
 
 export const connectDatabase = async (): Promise<void> => {
   try {
-    await sequelize.authenticate();
-    console.log("✅ Database connection established successfully.");
+    await mongoose.connect(env.MONGODB_URI);
+    console.log("✅ MongoDB connection established successfully.");
+    
+    mongoose.connection.on("error", (error) => {
+      console.error("❌ MongoDB connection error:", error);
+    });
+
+    mongoose.connection.on("disconnected", () => {
+      console.warn("⚠️ MongoDB disconnected. Attempting to reconnect...");
+    });
+
+    mongoose.connection.on("reconnected", () => {
+      console.log("✅ MongoDB reconnected successfully.");
+    });
+
   } catch (error) {
-    console.error("❌ Unable to connect to the database:", error);
+    console.error("❌ Unable to connect to MongoDB:", error);
     process.exit(1);
   }
 };
 
-export default sequelize;
+export default mongoose;

@@ -7,13 +7,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "staging", "production"]).default("development"),
   PORT: z.string().default("3000"),
   
-  // Database
-  DB_HOST: z.string().min(1),
-  DB_PORT: z.string().default("5432"),
-  DB_NAME: z.string().min(1),
-  DB_USER: z.string().min(1),
-  DB_PASSWORD: z.string().min(1),
-  DB_SSL: z.string().default("false"),
+  // MongoDB Database
+  MONGODB_URI: z.string().min(1),
   
   // JWT
   JWT_SECRET: z.string().min(32),

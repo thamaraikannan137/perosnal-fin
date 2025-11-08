@@ -2,7 +2,6 @@ import type { Response, NextFunction, Request } from "express";
 import userService from "../services/userService.js";
 import { sendSuccess } from "../utils/response.js";
 import { SUCCESS_MESSAGES } from "../config/constants.js";
-import type { UserAttributes } from "../models/User.js";
 
 class UserController {
   async getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -19,9 +18,9 @@ class UserController {
 
   async getUserById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const user = await userService.getUserById(id);
-      const userData = user.get({ plain: true }) as UserAttributes;
+      const userData = user.toObject();
       const { password, ...userWithoutPassword } = userData;
 
       sendSuccess(res, "User retrieved successfully", { user: userWithoutPassword });
@@ -32,10 +31,10 @@ class UserController {
 
   async updateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const updateData = req.body;
       const user = await userService.updateUser(id, updateData);
-      const userData = user.get({ plain: true }) as UserAttributes;
+      const userData = user.toObject();
       const { password, ...userWithoutPassword } = userData;
 
       sendSuccess(res, SUCCESS_MESSAGES.USER_UPDATED, { user: userWithoutPassword });
@@ -46,7 +45,7 @@ class UserController {
 
   async deleteUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       await userService.deleteUser(id);
 
       sendSuccess(res, SUCCESS_MESSAGES.USER_DELETED);

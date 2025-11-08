@@ -1,6 +1,8 @@
 import User from "./User.js";
+import Asset from "./Asset.js";
+import Liability from "./Liability.js";
 
-export { User };
+export { User, Asset, Liability };
 
-// Initialize associations here
-// Example: User.hasMany(Post, { foreignKey: 'userId' });
+// Models are defined with mongoose schemas
+// Associations are handled through references (userId)
