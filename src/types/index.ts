@@ -42,3 +42,5 @@ export interface RegisterFormData {
   confirmPassword: string;
 }
 
+export * from './models';
+

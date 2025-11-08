@@ -18,12 +18,12 @@ import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import {
   Dashboard,
   Home,
-  Info,
-  Calculate,
   Palette,
   Login,
   PersonAdd,
   Settings,
+  Savings,
+  AccountBalance,
 } from '@mui/icons-material';
 
 // Hook Imports
@@ -38,12 +38,13 @@ const { navWidth: drawerWidth, collapsedWidth } = navigationConfig;
 const iconMap: { [key: string]: React.ReactNode } = {
   Dashboard: <Dashboard />,
   Home: <Home />,
-  Info: <Info />,
-  Calculate: <Calculate />,
+
   Palette: <Palette />,
   Login: <Login />,
   PersonAdd: <PersonAdd />,
   Settings: <Settings />,
+  Savings: <Savings />,
+  AccountBalance: <AccountBalance />,
 };
 
 const StyledDrawer = styled(Drawer)(({ theme }) => ({

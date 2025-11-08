@@ -9,39 +9,24 @@ export interface NavItemType {
 
 export const navigationItems: NavItemType[] = [
   {
-    title: 'Dashboard',
-    path: '/',
-    icon: 'Dashboard',
+    title: "Dashboard",
+    path: "/",
+    icon: "Dashboard",
   },
   {
-    title: 'About',
-    path: '/about',
-    icon: 'Info',
+    title: "Assets",
+    path: "/assets",
+    icon: "Savings",
   },
   {
-    title: 'Counter',
-    path: '/counter',
-    icon: 'Calculate',
+    title: "Liabilities",
+    path: "/liabilities",
+    icon: "AccountBalance",
   },
   {
-    title: 'Theme Example',
-    path: '/theme-example',
-    icon: 'Palette',
-  },
-  {
-    title: 'Login',
-    path: '/login',
-    icon: 'Login',
-  },
-  {
-    title: 'Register',
-    path: '/register',
-    icon: 'PersonAdd',
-  },
-  {
-    title: 'Settings',
-    path: '/settings',
-    icon: 'Settings',
+    title: "Settings",
+    path: "/settings",
+    icon: "Settings",
   },
 ];
 
@@ -49,4 +34,3 @@ export const navigationConfig = {
   navWidth: 260,
   collapsedWidth: 80,
 };
-

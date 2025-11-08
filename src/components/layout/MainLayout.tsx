@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { Navigation } from './Navigation';
 import { Header } from './Header';
-import { Footer } from './Footer';
+// import { Footer } from './Footer';
 
 export const MainLayout = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -30,7 +30,7 @@ export const MainLayout = () => {
         </Box>
 
         {/* Footer */}
-        <Footer />
+        {/* <Footer /> */}
       </Box>
     </Box>
   );

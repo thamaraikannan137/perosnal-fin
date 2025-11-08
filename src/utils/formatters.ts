@@ -1,7 +1,7 @@
 // Date formatting utilities
 export const formatDate = (date: Date | string): string => {
   const d = new Date(date);
-  return d.toLocaleDateString('en-US', {
+  return d.toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -9,8 +9,8 @@ export const formatDate = (date: Date | string): string => {
 };
 
 // Currency formatting
-export const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
+export const formatCurrency = (amount: number, currency: string = 'INR'): string => {
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency,
   }).format(amount);
@@ -18,7 +18,7 @@ export const formatCurrency = (amount: number, currency: string = 'USD'): string
 
 // Number formatting
 export const formatNumber = (num: number): string => {
-  return new Intl.NumberFormat('en-US').format(num);
+  return new Intl.NumberFormat('en-IN').format(num);
 };
 
 // Truncate text

@@ -84,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({ onDrawerToggle }) => {
           </Box>
         ) : (
           <CustomAvatar color="secondary" skin="light" size={40}>
-            ?
+            U
           </CustomAvatar>
         )}
       </Box>

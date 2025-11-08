@@ -50,28 +50,29 @@ const themeConfig = {
       '"Segoe UI Emoji"',
       '"Segoe UI Symbol"',
     ].join(','),
+    fontSize: 12,
     h1: {
-      fontSize: '2.5rem',
+      fontSize: '2rem',
       fontWeight: 600,
       lineHeight: 1.2,
     },
     h2: {
-      fontSize: '2rem',
+      fontSize: '1.75rem',
       fontWeight: 600,
       lineHeight: 1.3,
     },
     h3: {
-      fontSize: '1.75rem',
-      fontWeight: 600,
-      lineHeight: 1.4,
-    },
-    h4: {
       fontSize: '1.5rem',
       fontWeight: 600,
       lineHeight: 1.4,
     },
-    h5: {
+    h4: {
       fontSize: '1.25rem',
+      fontWeight: 600,
+      lineHeight: 1.4,
+    },
+    h5: {
+      fontSize: '1.125rem',
       fontWeight: 600,
       lineHeight: 1.5,
     },
@@ -80,9 +81,28 @@ const themeConfig = {
       fontWeight: 600,
       lineHeight: 1.6,
     },
+    body1: {
+      fontSize: '0.875rem',
+    },
+    body2: {
+      fontSize: '0.8125rem',
+    },
+    subtitle1: {
+      fontSize: '0.875rem',
+    },
+    subtitle2: {
+      fontSize: '0.8125rem',
+    },
     button: {
       textTransform: 'none' as const,
       fontWeight: 500,
+      fontSize: '0.875rem',
+    },
+    caption: {
+      fontSize: '0.75rem',
+    },
+    overline: {
+      fontSize: '0.75rem',
     },
   },
   shape: {

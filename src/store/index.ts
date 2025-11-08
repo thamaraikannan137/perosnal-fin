@@ -4,12 +4,16 @@ import type { TypedUseSelectorHook } from 'react-redux';
 import counterReducer from './slices/counterSlice';
 import userReducer from './slices/userSlice';
 import authReducer from './slices/authSlice';
+import assetReducer from './slices/assetSlice';
+import liabilityReducer from './slices/liabilitySlice';
 
 export const store = configureStore({
   reducer: {
     counter: counterReducer,
     user: userReducer,
     auth: authReducer,
+    assets: assetReducer,
+    liabilities: liabilityReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

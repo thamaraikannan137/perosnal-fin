@@ -1,11 +1,15 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { MainLayout } from "../components/layout";
 import { HomePage } from "../pages/HomePage";
-import { AboutPage } from "../pages/AboutPage";
+
 import { LoginPage } from "../pages/LoginPage";
 import { RegisterPage } from "../pages/RegisterPage";
-import { CounterPage } from "../pages/CounterPage";
-import { ThemeExamplePage } from "../pages/ThemeExamplePage";
+
+import { AssetsPage } from "../pages/AssetsPage";
+import { AssetDetailPage } from "../pages/AssetDetailPage";
+import { LiabilitiesPage } from "../pages/LiabilitiesPage";
+import { LiabilityDetailPage } from "../pages/LiabilityDetailPage";
+import { SettingsPage } from "../pages/SettingsPage";
 
 const router = createBrowserRouter([
   {
@@ -18,16 +22,24 @@ const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: "about",
-        element: <AboutPage />,
+        path: "assets",
+        element: <AssetsPage />,
       },
       {
-        path: "counter",
-        element: <CounterPage />,
+        path: "assets/:id",
+        element: <AssetDetailPage />,
       },
       {
-        path: "theme-example",
-        element: <ThemeExamplePage />,
+        path: "liabilities",
+        element: <LiabilitiesPage />,
+      },
+      {
+        path: "liabilities/:id",
+        element: <LiabilityDetailPage />,
+      },
+      {
+        path: "settings",
+        element: <SettingsPage />,
       },
     ],
   },
