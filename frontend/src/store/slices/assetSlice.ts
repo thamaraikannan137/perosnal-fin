@@ -85,10 +85,24 @@ const assetSlice = createSlice({
         state.loading = false;
         state.error = action.error.message ?? 'Failed to load asset details';
       })
+      .addCase(createAsset.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(createAsset.fulfilled, (state, action) => {
+        state.loading = false;
         state.items.push(action.payload);
       })
+      .addCase(createAsset.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Failed to create asset';
+      })
+      .addCase(updateAsset.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(updateAsset.fulfilled, (state, action) => {
+        state.loading = false;
         state.items = state.items.map((item) =>
           item.id === action.payload.id ? action.payload : item
         );
@@ -96,19 +110,23 @@ const assetSlice = createSlice({
           state.selectedAsset = action.payload;
         }
       })
+      .addCase(updateAsset.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Failed to update asset';
+      })
+      .addCase(deleteAsset.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(deleteAsset.fulfilled, (state, action) => {
+        state.loading = false;
         state.items = state.items.filter((item) => item.id !== action.payload);
         if (state.selectedAsset?.id === action.payload) {
           state.selectedAsset = null;
         }
       })
-      .addCase(createAsset.rejected, (state, action) => {
-        state.error = action.error.message ?? 'Failed to create asset';
-      })
-      .addCase(updateAsset.rejected, (state, action) => {
-        state.error = action.error.message ?? 'Failed to update asset';
-      })
       .addCase(deleteAsset.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.error.message ?? 'Failed to delete asset';
       });
   },

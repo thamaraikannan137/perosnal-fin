@@ -1,2 +1,0 @@
-export { RecurringPaymentDialog } from './RecurringPaymentDialog';
-

@@ -8,7 +8,7 @@ export const userService = {
   },
 
   getUserById: async (id: string): Promise<User> => {
-    return apiClient.get<User>(`${API_ENDPOINTS.USERS}/${id}`);
+    return apiClient.get<User>(API_ENDPOINTS.USER_BY_ID(id));
   },
 
   createUser: async (userData: Partial<User>): Promise<User> => {
@@ -16,11 +16,11 @@ export const userService = {
   },
 
   updateUser: async (id: string, userData: Partial<User>): Promise<User> => {
-    return apiClient.put<User>(`${API_ENDPOINTS.USERS}/${id}`, userData);
+    return apiClient.put<User>(API_ENDPOINTS.USER_BY_ID(id), userData);
   },
 
   deleteUser: async (id: string): Promise<void> => {
-    return apiClient.delete<void>(`${API_ENDPOINTS.USERS}/${id}`);
+    return apiClient.delete<void>(API_ENDPOINTS.USER_BY_ID(id));
   },
 };
 

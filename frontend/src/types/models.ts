@@ -139,15 +139,6 @@ export interface Asset {
   accountNumber?: string; // Account number
   notes?: string; // Additional notes
   
-  // Recurring payment fields (for schemes with monthly payments)
-  recurringPayment?: {
-    amount: number;
-    dayOfMonth: number; // 1-31, day of month to pay
-    startDate: string;
-    endDate?: string; // Optional end date
-    isActive: boolean;
-  };
-  
   // Custom fields (for Custom category assets)
   customFields?: CustomFieldDefinition[];
   customCategoryName?: string; // Name of custom category template (e.g., "Vehicle", "Collectible")
@@ -194,81 +185,4 @@ export type AssetUpdateInput = Partial<Omit<Asset, 'id'>>;
 
 export type LiabilityCreateInput = Omit<Liability, 'id' | 'updatedAt'> & { updatedAt?: string };
 export type LiabilityUpdateInput = Partial<Omit<Liability, 'id'>>;
-
-// Transaction/History models
-export const TransactionType = {
-  PAYMENT: 'payment',
-  DEPOSIT: 'deposit',
-  WITHDRAWAL: 'withdrawal',
-  INTEREST: 'interest',
-  ADJUSTMENT: 'adjustment',
-  EMI_PAYMENT: 'emi_payment',
-} as const;
-
-export type TransactionType = typeof TransactionType[keyof typeof TransactionType];
-
-export interface Transaction {
-  id: string;
-  assetId?: string;
-  liabilityId?: string;
-  type: TransactionType;
-  amount: number;
-  date: string;
-  description?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface TransactionCreateInput {
-  assetId?: string;
-  liabilityId?: string;
-  type: TransactionType;
-  amount: number;
-  date: string;
-  description?: string;
-  notes?: string;
-}
-
-export interface TransactionUpdateInput {
-  type?: TransactionType;
-  amount?: number;
-  date?: string;
-  description?: string;
-  notes?: string;
-}
-
-// Extended models with history
-export interface AssetWithHistory extends Asset {
-  transactions: Transaction[];
-}
-
-export interface LiabilityWithHistory extends Liability {
-  transactions: Transaction[];
-}
-
-// Recurring Payment Schedule
-export interface RecurringSchedule {
-  id: string;
-  assetId?: string;
-  liabilityId?: string;
-  amount: number;
-  dayOfMonth: number; // 1-31
-  startDate: string;
-  endDate?: string;
-  isActive: boolean;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface RecurringScheduleCreateInput {
-  assetId?: string;
-  liabilityId?: string;
-  amount: number;
-  dayOfMonth: number;
-  startDate: string;
-  endDate?: string;
-  description?: string;
-}
 

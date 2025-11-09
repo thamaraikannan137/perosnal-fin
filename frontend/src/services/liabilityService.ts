@@ -1,5 +1,6 @@
 import type { Liability, LiabilityCreateInput, LiabilityUpdateInput } from '../types';
 import { apiClient } from './api';
+import { API_ENDPOINTS } from '../config/constants';
 
 // API Response types matching backend
 interface ApiResponse<T> {
@@ -18,7 +19,19 @@ interface LiabilityResponse {
   liability: Liability;
 }
 
+interface CategorySummary {
+  category: string;
+  total: number;
+  count: number;
+}
+
+interface LiabilitySummaryResponse {
+  totalBalance: number;
+  byCategory: CategorySummary[];
+}
+
 // Transform backend _id to frontend id
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const transformLiability = (liability: any): Liability => {
   return {
     ...liability,
@@ -39,7 +52,7 @@ export const liabilityService = {
       }
 
       const response = await apiClient.get<ApiResponse<LiabilitiesResponse>>(
-        `/liabilities?${params.toString()}`
+        `${API_ENDPOINTS.LIABILITIES}?${params.toString()}`
       );
       
       return response.data.liabilities.map(transformLiability);
@@ -51,11 +64,14 @@ export const liabilityService = {
 
   async getLiabilityById(id: string): Promise<Liability | undefined> {
     try {
-      const response = await apiClient.get<ApiResponse<LiabilityResponse>>(`/liabilities/${id}`);
+      const response = await apiClient.get<ApiResponse<LiabilityResponse>>(API_ENDPOINTS.LIABILITY_BY_ID(id));
       return transformLiability(response.data.liability);
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        return undefined;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const err = error as { response?: { status?: number } };
+        if (err.response?.status === 404) {
+          return undefined;
+        }
       }
       console.error('Error fetching liability:', error);
       throw error;
@@ -64,7 +80,7 @@ export const liabilityService = {
 
   async createLiability(payload: LiabilityCreateInput): Promise<Liability> {
     try {
-      const response = await apiClient.post<ApiResponse<LiabilityResponse>>('/liabilities', payload);
+      const response = await apiClient.post<ApiResponse<LiabilityResponse>>(API_ENDPOINTS.LIABILITIES, payload);
       return transformLiability(response.data.liability);
     } catch (error) {
       console.error('Error creating liability:', error);
@@ -74,7 +90,7 @@ export const liabilityService = {
 
   async updateLiability(id: string, payload: LiabilityUpdateInput): Promise<Liability> {
     try {
-      const response = await apiClient.put<ApiResponse<LiabilityResponse>>(`/liabilities/${id}`, payload);
+      const response = await apiClient.put<ApiResponse<LiabilityResponse>>(API_ENDPOINTS.LIABILITY_BY_ID(id), payload);
       return transformLiability(response.data.liability);
     } catch (error) {
       console.error('Error updating liability:', error);
@@ -84,7 +100,7 @@ export const liabilityService = {
 
   async deleteLiability(id: string): Promise<string> {
     try {
-      await apiClient.delete(`/liabilities/${id}`);
+      await apiClient.delete(API_ENDPOINTS.LIABILITY_BY_ID(id));
       return id;
     } catch (error) {
       console.error('Error deleting liability:', error);
@@ -92,10 +108,10 @@ export const liabilityService = {
     }
   },
 
-  async getLiabilitySummary(): Promise<{ totalBalance: number; byCategory: any[] }> {
+  async getLiabilitySummary(): Promise<LiabilitySummaryResponse> {
     try {
-      const response = await apiClient.get<ApiResponse<{ totalBalance: number; byCategory: any[] }>>(
-        '/liabilities/summary'
+      const response = await apiClient.get<ApiResponse<LiabilitySummaryResponse>>(
+        API_ENDPOINTS.LIABILITY_SUMMARY
       );
       return response.data;
     } catch (error) {

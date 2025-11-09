@@ -1,5 +1,6 @@
 import type { Asset, AssetCreateInput, AssetUpdateInput } from '../types';
 import { apiClient } from './api';
+import { API_ENDPOINTS } from '../config/constants';
 
 // API Response types matching backend
 interface ApiResponse<T> {
@@ -18,7 +19,19 @@ interface AssetResponse {
   asset: Asset;
 }
 
+interface CategorySummary {
+  category: string;
+  total: number;
+  count: number;
+}
+
+interface AssetSummaryResponse {
+  totalValue: number;
+  byCategory: CategorySummary[];
+}
+
 // Transform backend _id to frontend id
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const transformAsset = (asset: any): Asset => {
   return {
     ...asset,
@@ -39,7 +52,7 @@ export const assetService = {
       }
 
       const response = await apiClient.get<ApiResponse<AssetsResponse>>(
-        `/assets?${params.toString()}`
+        `${API_ENDPOINTS.ASSETS}?${params.toString()}`
       );
       
       return response.data.assets.map(transformAsset);
@@ -51,11 +64,14 @@ export const assetService = {
 
   async getAssetById(id: string): Promise<Asset | undefined> {
     try {
-      const response = await apiClient.get<ApiResponse<AssetResponse>>(`/assets/${id}`);
+      const response = await apiClient.get<ApiResponse<AssetResponse>>(API_ENDPOINTS.ASSET_BY_ID(id));
       return transformAsset(response.data.asset);
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        return undefined;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const err = error as { response?: { status?: number } };
+        if (err.response?.status === 404) {
+          return undefined;
+        }
       }
       console.error('Error fetching asset:', error);
       throw error;
@@ -64,7 +80,7 @@ export const assetService = {
 
   async createAsset(payload: AssetCreateInput): Promise<Asset> {
     try {
-      const response = await apiClient.post<ApiResponse<AssetResponse>>('/assets', payload);
+      const response = await apiClient.post<ApiResponse<AssetResponse>>(API_ENDPOINTS.ASSETS, payload);
       return transformAsset(response.data.asset);
     } catch (error) {
       console.error('Error creating asset:', error);
@@ -74,7 +90,7 @@ export const assetService = {
 
   async updateAsset(id: string, payload: AssetUpdateInput): Promise<Asset> {
     try {
-      const response = await apiClient.put<ApiResponse<AssetResponse>>(`/assets/${id}`, payload);
+      const response = await apiClient.put<ApiResponse<AssetResponse>>(API_ENDPOINTS.ASSET_BY_ID(id), payload);
       return transformAsset(response.data.asset);
     } catch (error) {
       console.error('Error updating asset:', error);
@@ -84,7 +100,7 @@ export const assetService = {
 
   async deleteAsset(id: string): Promise<string> {
     try {
-      await apiClient.delete(`/assets/${id}`);
+      await apiClient.delete(API_ENDPOINTS.ASSET_BY_ID(id));
       return id;
     } catch (error) {
       console.error('Error deleting asset:', error);
@@ -92,10 +108,10 @@ export const assetService = {
     }
   },
 
-  async getAssetSummary(): Promise<{ totalValue: number; byCategory: any[] }> {
+  async getAssetSummary(): Promise<AssetSummaryResponse> {
     try {
-      const response = await apiClient.get<ApiResponse<{ totalValue: number; byCategory: any[] }>>(
-        '/assets/summary'
+      const response = await apiClient.get<ApiResponse<AssetSummaryResponse>>(
+        API_ENDPOINTS.ASSET_SUMMARY
       );
       return response.data;
     } catch (error) {

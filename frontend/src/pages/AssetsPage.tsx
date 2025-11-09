@@ -99,7 +99,7 @@ export const AssetsPage = () => {
     }
     setAssetDialogOpen(false);
     setEditingAsset(null);
-    dispatch(fetchAssets());
+    // State is already updated by the slice - no need to refetch
   };
 
   const handleConfirmDelete = async () => {
@@ -109,7 +109,7 @@ export const AssetsPage = () => {
       await dispatch(deleteAsset(assetToDelete.id));
       setDeleteDialogOpen(false);
       setAssetToDelete(null);
-      dispatch(fetchAssets());
+      // State is already updated by the slice - no need to refetch
     } catch (error) {
       console.error('Failed to delete asset:', error);
     }

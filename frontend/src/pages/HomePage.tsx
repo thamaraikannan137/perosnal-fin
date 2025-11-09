@@ -34,6 +34,7 @@ export const HomePage = () => {
   
   const { items: assets } = useAppSelector((state) => state.assets);
   const { items: liabilities } = useAppSelector((state) => state.liabilities);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   
   // Dialog states
   const [assetDialogOpen, setAssetDialogOpen] = useState(false);
@@ -42,11 +43,13 @@ export const HomePage = () => {
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [editingLiability, setEditingLiability] = useState<Liability | null>(null);
 
-  // Load data
+  // Load data only if authenticated
   useEffect(() => {
-    dispatch(fetchAssets());
-    dispatch(fetchLiabilities());
-  }, [dispatch]);
+    if (isAuthenticated) {
+      dispatch(fetchAssets());
+      dispatch(fetchLiabilities());
+    }
+  }, [dispatch, isAuthenticated]);
 
   // Calculate summary with detailed metrics
   const summary = useMemo(() => {
@@ -102,7 +105,7 @@ export const HomePage = () => {
     }
     setAssetDialogOpen(false);
     setEditingAsset(null);
-    dispatch(fetchAssets());
+    // State is already updated by the slice - no need to refetch
   };
 
   // Liability CRUD handlers

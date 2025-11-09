@@ -1,4 +1,5 @@
 import { apiClient } from './api';
+import { API_ENDPOINTS, STORAGE_KEYS } from '../config/constants';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -43,13 +44,13 @@ export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       const response = await apiClient.post<ApiResponse<AuthResponse>>(
-        '/auth/login',
+        API_ENDPOINTS.AUTH.LOGIN,
         credentials
       );
       
       // Store tokens in localStorage
       if (response.data.accessToken) {
-        localStorage.setItem('authToken', response.data.accessToken);
+        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, response.data.accessToken);
         localStorage.setItem('refreshToken', response.data.refreshToken);
         localStorage.setItem('user', JSON.stringify(response.data.user));
       }
@@ -64,13 +65,13 @@ export const authService = {
   async register(data: RegisterData): Promise<AuthResponse> {
     try {
       const response = await apiClient.post<ApiResponse<AuthResponse>>(
-        '/auth/register',
+        API_ENDPOINTS.AUTH.REGISTER,
         data
       );
       
       // Store tokens in localStorage
       if (response.data.accessToken) {
-        localStorage.setItem('authToken', response.data.accessToken);
+        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, response.data.accessToken);
         localStorage.setItem('refreshToken', response.data.refreshToken);
         localStorage.setItem('user', JSON.stringify(response.data.user));
       }
@@ -84,7 +85,7 @@ export const authService = {
 
   async getProfile(): Promise<User> {
     try {
-      const response = await apiClient.get<ApiResponse<ProfileResponse>>('/auth/profile');
+      const response = await apiClient.get<ApiResponse<ProfileResponse>>(API_ENDPOINTS.AUTH.PROFILE);
       return response.data.user;
     } catch (error) {
       console.error('Get profile error:', error);
@@ -100,12 +101,12 @@ export const authService = {
       }
 
       const response = await apiClient.post<ApiResponse<{ accessToken: string }>>(
-        '/auth/refresh',
+        API_ENDPOINTS.AUTH.REFRESH,
         { refreshToken }
       );
       
       // Update access token
-      localStorage.setItem('authToken', response.data.accessToken);
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, response.data.accessToken);
       return response.data.accessToken;
     } catch (error) {
       console.error('Refresh token error:', error);
@@ -116,13 +117,13 @@ export const authService = {
   },
 
   logout(): void {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
   },
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('authToken');
+    return !!localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
   },
 
   getStoredUser(): User | null {

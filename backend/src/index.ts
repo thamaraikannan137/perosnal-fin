@@ -32,7 +32,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(requestLogger);
 
 // Rate limiting
-app.use("/api", apiRateLimiter);
+// app.use("/api", apiRateLimiter);
 
 // Health check endpoint
 app.get("/health", (_req: Request, res: Response) => {

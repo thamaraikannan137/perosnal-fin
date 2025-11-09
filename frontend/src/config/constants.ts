@@ -18,11 +18,27 @@ export const STORAGE_KEYS = {
 
 // API Endpoints
 export const API_ENDPOINTS = {
-  USERS: '/users',
+  // Auth Endpoints
   AUTH: {
     LOGIN: '/auth/login',
     LOGOUT: '/auth/logout',
     REGISTER: '/auth/register',
+    PROFILE: '/auth/profile',
+    REFRESH: '/auth/refresh',
   },
+  
+  // User Endpoints
+  USERS: '/users',
+  USER_BY_ID: (id: string) => `/users/${id}`,
+  
+  // Asset Endpoints
+  ASSETS: '/assets',
+  ASSET_BY_ID: (id: string) => `/assets/${id}`,
+  ASSET_SUMMARY: '/assets/summary',
+  
+  // Liability Endpoints
+  LIABILITIES: '/liabilities',
+  LIABILITY_BY_ID: (id: string) => `/liabilities/${id}`,
+  LIABILITY_SUMMARY: '/liabilities/summary',
 } as const;
 

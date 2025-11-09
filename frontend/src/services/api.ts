@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
-import { API_BASE_URL } from '../config/constants';
+import { API_BASE_URL, STORAGE_KEYS } from '../config/constants';
 
 // Generic API client using Axios
 class ApiClient {
@@ -18,7 +18,7 @@ class ApiClient {
     this.axiosInstance.interceptors.request.use(
       (config) => {
         // Add authentication token if available
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -42,7 +42,9 @@ class ApiClient {
           switch (error.response.status) {
             case 401:
               // Unauthorized - clear auth and redirect to login
-              localStorage.removeItem('authToken');
+              localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+              localStorage.removeItem('refreshToken');
+              localStorage.removeItem('user');
               window.location.href = '/login';
               break;
             case 403:
