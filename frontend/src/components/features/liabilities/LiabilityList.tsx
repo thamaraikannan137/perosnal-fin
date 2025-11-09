@@ -4,6 +4,7 @@ import type { Liability } from '../../../types';
 import { Button, DataGrid, type Column } from '../../common';
 import { formatCurrency, formatDate } from '../../../utils';
 import { LiabilityCategory } from '../../../types/models';
+import { liabilityCategoryLabels } from '../../../config/categoryConfig';
 
 interface LiabilityListProps {
   liabilities: Liability[];
@@ -12,15 +13,6 @@ interface LiabilityListProps {
   onEditLiability?: (liability: Liability) => void;
   onDeleteLiability?: (liability: Liability) => void;
 }
-
-const categoryLabels: Record<LiabilityCategory, string> = {
-  credit: 'Credit',
-  loan: 'Loan',
-  mortgage: 'Mortgage',
-  tax: 'Tax',
-  other: 'Other',
-  custom: 'Custom',
-};
 
 export const LiabilityList = ({
   liabilities,
@@ -32,7 +24,7 @@ export const LiabilityList = ({
   const filterOptions = useMemo(
     () =>
       Object.values(LiabilityCategory).map((value) => ({
-        label: categoryLabels[value],
+        label: liabilityCategoryLabels[value],
         value: value,
         field: 'category' as keyof Liability,
       })),
@@ -55,7 +47,7 @@ export const LiabilityList = ({
         const liability = row as Liability;
         const label = liability.category === 'custom' && liability.customCategoryName
           ? liability.customCategoryName
-          : categoryLabels[value as LiabilityCategory];
+          : liabilityCategoryLabels[value as LiabilityCategory];
         return (
           <Chip
             size="small"

@@ -24,8 +24,9 @@ import {
   createLiability,
   updateLiability,
 } from '../store/slices/liabilitySlice';
-import type { Asset, AssetCreateInput, AssetUpdateInput } from '../types';
-import type { Liability, LiabilityCreateInput, LiabilityUpdateInput } from '../types';
+import type { Asset, AssetCreateInput, AssetUpdateInput, AssetCategory } from '../types';
+import type { Liability, LiabilityCreateInput, LiabilityUpdateInput, LiabilityCategory } from '../types';
+import { getAssetCategoryLabel, getLiabilityCategoryLabel } from '../config/categoryConfig';
 
 export const HomePage = () => {
   const navigate = useNavigate();
@@ -124,53 +125,71 @@ export const HomePage = () => {
 
   // Chart data for asset distribution
   const assetChartData = useMemo(() => {
-    const categoryTotals: Record<string, number> = {};
+    const categoryTotals: Record<string, { value: number; customName?: string }> = {};
     assets.forEach((asset) => {
-      categoryTotals[asset.category] = (categoryTotals[asset.category] || 0) + asset.value;
+      const key = asset.category === 'custom' && asset.customCategoryName 
+        ? asset.customCategoryName 
+        : asset.category;
+      
+      if (!categoryTotals[key]) {
+        categoryTotals[key] = { 
+          value: 0, 
+          customName: asset.category === 'custom' ? asset.customCategoryName : undefined 
+        };
+      }
+      categoryTotals[key].value += asset.value;
     });
 
     return {
       categories: Object.keys(categoryTotals),
-      values: Object.values(categoryTotals),
+      values: Object.values(categoryTotals).map(item => item.value),
+      customNames: categoryTotals,
     };
   }, [assets]);
 
   // Chart data for liability distribution
   const liabilityChartData = useMemo(() => {
-    const categoryTotals: Record<string, number> = {};
+    const categoryTotals: Record<string, { value: number; customName?: string }> = {};
     liabilities.forEach((liability) => {
-      categoryTotals[liability.category] = (categoryTotals[liability.category] || 0) + liability.balance;
+      const key = liability.category === 'custom' && liability.customCategoryName 
+        ? liability.customCategoryName 
+        : liability.category;
+      
+      if (!categoryTotals[key]) {
+        categoryTotals[key] = { 
+          value: 0, 
+          customName: liability.category === 'custom' ? liability.customCategoryName : undefined 
+        };
+      }
+      categoryTotals[key].value += liability.balance;
     });
 
     return {
       categories: Object.keys(categoryTotals),
-      values: Object.values(categoryTotals),
+      values: Object.values(categoryTotals).map(item => item.value),
+      customNames: categoryTotals,
     };
   }, [liabilities]);
 
-  const getCategoryLabel = (category: string): string => {
-    const assetLabels: Record<string, string> = {
-      land: 'Land',
-      gold: 'Gold',
-      gold_scheme: 'Gold Scheme',
-      lent_money: 'Lent Money',
-      savings: 'Savings',
-      fixed_deposit: 'Fixed Deposit',
-      investment: 'Investment',
-      property: 'Property',
-      retirement: 'Retirement',
-      other: 'Other',
-    };
+  const getCategoryLabel = (category: string, isAsset: boolean = true): string => {
+    // For custom categories, the category string is the custom category name itself
+    // Try to get label from centralized config
+    try {
+      if (isAsset) {
+        const assetLabel = getAssetCategoryLabel(category as AssetCategory);
+        // If it's not 'Custom', it's a standard category
+        if (assetLabel !== 'Custom') return assetLabel;
+      } else {
+        const liabilityLabel = getLiabilityCategoryLabel(category as LiabilityCategory);
+        // If it's not 'Custom', it's a standard category
+        if (liabilityLabel !== 'Custom') return liabilityLabel;
+      }
+    } catch {
+      // If category is not in the enum, it's a custom category name
+    }
     
-    const liabilityLabels: Record<string, string> = {
-      credit: 'Credit Card',
-      loan: 'Loan',
-      mortgage: 'Mortgage',
-      tax: 'Tax',
-      other: 'Other',
-    };
-    
-    return assetLabels[category] || liabilityLabels[category] || category.charAt(0).toUpperCase() + category.slice(1);
+    // For custom categories, the category string is already the display name
+    return category.charAt(0).toUpperCase() + category.slice(1);
   };
 
 
@@ -544,7 +563,7 @@ export const HomePage = () => {
                   height={300}
                   series={assetChartData.values}
                   options={{
-                    labels: assetChartData.categories.map((cat) => getCategoryLabel(cat)),
+                    labels: assetChartData.categories.map((cat) => getCategoryLabel(cat, true)),
                     legend: {
                       position: 'bottom',
                     },
@@ -586,7 +605,7 @@ export const HomePage = () => {
                   height={300}
                   series={liabilityChartData.values}
                   options={{
-                    labels: liabilityChartData.categories.map((cat) => getCategoryLabel(cat)),
+                    labels: liabilityChartData.categories.map((cat) => getCategoryLabel(cat, false)),
                     legend: {
                       position: 'bottom',
                     },

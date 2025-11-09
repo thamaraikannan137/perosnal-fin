@@ -7,9 +7,8 @@ import {
   TextField,
   MenuItem,
   Stack,
-  Typography,
   Divider,
-  InputAdornment,
+  Typography,
 } from '@mui/material';
 import type { 
   Liability, 
@@ -17,12 +16,10 @@ import type {
   LiabilityCategory,
   CustomFieldDefinition,
   CustomCategoryTemplate,
-  CustomFieldType,
 } from '../../../types';
-import { Button } from '../../common';
+import { Button, CustomFieldsRenderer } from '../../common';
 import { customCategoryService } from '../../../services/customCategoryService';
-
-const liabilityCategoryOptions: LiabilityCategory[] = ['credit', 'loan', 'mortgage', 'tax', 'other'];
+import { liabilityCategoryOptions, liabilityCategoryLabels } from '../../../config/categoryConfig';
 
 type LiabilityFormValues = LiabilityCreateInput;
 
@@ -119,77 +116,18 @@ export const LiabilityFormDialog = ({
     }
   };
 
-  const handleCustomFieldChange = (fieldId: string, value: string | number | null) => {
+  const handleCustomFieldChange = (fieldId: string, updates: Partial<CustomFieldDefinition>) => {
     setCustomFields((prev) =>
       prev.map((field) =>
-        field.id === fieldId ? { ...field, value } : field
+        field.id === fieldId ? { ...field, ...updates } : field
       )
     );
     setFormValues((prev) => ({
       ...prev,
       customFields: customFields.map((field) =>
-        field.id === fieldId ? { ...field, value } : field
+        field.id === fieldId ? { ...field, ...updates } : field
       ),
     }));
-  };
-
-  const renderCustomFieldInput = (field: CustomFieldDefinition) => {
-    const getInputProps = (type: CustomFieldType) => {
-      switch (type) {
-        case 'number':
-        case 'currency':
-          return { type: 'number', step: '0.01', min: 0 };
-        case 'percentage':
-          return { type: 'number', step: '0.01', min: 0, max: 100 };
-        case 'date':
-          return { type: 'date' };
-        case 'url':
-          return { type: 'url' };
-        case 'email':
-          return { type: 'email' };
-        case 'phone':
-          return { type: 'tel' };
-        default:
-          return { type: 'text' };
-      }
-    };
-
-    const inputProps = getInputProps(field.type);
-    const isMultiline = field.type === 'textarea';
-    const startAdornment =
-      field.type === 'currency' ? (
-        <InputAdornment position="start">₹</InputAdornment>
-      ) : field.type === 'percentage' ? (
-        <InputAdornment position="end">%</InputAdornment>
-      ) : undefined;
-
-    return (
-      <TextField
-        key={field.id}
-        label={field.name}
-        value={field.value ?? ''}
-        onChange={(e) => {
-          const value =
-            field.type === 'number' || field.type === 'currency' || field.type === 'percentage'
-              ? Number(e.target.value)
-              : e.target.value;
-          handleCustomFieldChange(field.id, value);
-        }}
-        fullWidth
-        required={field.required}
-        multiline={isMultiline}
-        minRows={isMultiline ? 3 : undefined}
-        placeholder={field.placeholder}
-        InputProps={{
-          startAdornment: field.type === 'currency' ? startAdornment : undefined,
-          endAdornment: field.type === 'percentage' ? startAdornment : undefined,
-        }}
-        InputLabelProps={
-          field.type === 'date' ? { shrink: true } : undefined
-        }
-        {...inputProps}
-      />
-    );
   };
 
   const validate = () => {
@@ -247,23 +185,26 @@ export const LiabilityFormDialog = ({
             }
             onChange={handleCategoryChange}
             fullWidth
+            required
           >
             {liabilityCategoryOptions.map((option) => (
               <MenuItem key={option} value={option}>
-                {option.charAt(0).toUpperCase() + option.slice(1)}
+                {liabilityCategoryLabels[option]}
               </MenuItem>
             ))}
-            {customCategoryTemplates.length > 0 && (
-              <MenuItem disabled>
-                <em>─── Custom Categories ───</em>
-              </MenuItem>
-            )}
-            {customCategoryTemplates.map((template) => (
-              <MenuItem key={template.id} value={template.id}>
-                {template.icon && <span style={{ marginRight: '8px' }}>{template.icon}</span>}
-                {template.name}
-              </MenuItem>
-            ))}
+            {customCategoryTemplates.length > 0 && [
+              <Divider key="custom-divider" sx={{ my: 1 }} />,
+              <MenuItem key="custom-header" disabled>
+                <Typography variant="caption" fontWeight={600} color="text.secondary">
+                  Custom Categories
+                </Typography>
+              </MenuItem>,
+              ...customCategoryTemplates.map((template) => (
+                <MenuItem key={template.id} value={template.id}>
+                  {template.name}
+                </MenuItem>
+              ))
+            ]}
           </TextField>
           <TextField
             label="Balance"
@@ -320,14 +261,11 @@ export const LiabilityFormDialog = ({
 
           {/* Custom Fields */}
           {formValues.category === 'custom' && customFields.length > 0 && (
-            <>
-              <Divider sx={{ my: 2 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Custom Fields
-                </Typography>
-              </Divider>
-              {customFields.map((field) => renderCustomFieldInput(field))}
-            </>
+            <CustomFieldsRenderer
+              customFields={customFields}
+              onFieldChange={handleCustomFieldChange}
+              categoryName={formValues.customCategoryName}
+            />
           )}
         </Stack>
       </DialogContent>

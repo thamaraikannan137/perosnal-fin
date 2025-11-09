@@ -12,6 +12,7 @@ export { DataGrid } from './DataGrid';
 export type { Column, DataGridProps } from './DataGrid';
 export { ChartCard } from './ChartCard';
 export type { ChartCardProps } from './ChartCard';
+export { CustomFieldsRenderer } from './CustomFieldsRenderer';
 
 // Also export with simple names for convenience
 export { MuiButton as Button } from './MuiButton';

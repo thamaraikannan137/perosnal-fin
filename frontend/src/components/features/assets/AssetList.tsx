@@ -4,6 +4,7 @@ import type { Asset } from '../../../types';
 import { Button, DataGrid, type Column } from '../../common';
 import { formatCurrency, formatDate } from '../../../utils';
 import { AssetCategory } from '../../../types/models';
+import { getAssetCategoryLabel, assetCategoryLabels } from '../../../config/categoryConfig';
 
 interface AssetListProps {
   assets: Asset[];
@@ -12,20 +13,6 @@ interface AssetListProps {
   onEditAsset?: (asset: Asset) => void;
   onDeleteAsset?: (asset: Asset) => void;
 }
-
-const categoryLabels: Record<AssetCategory, string> = {
-  land: 'Land',
-  gold: 'Gold',
-  gold_scheme: 'Gold Scheme',
-  lent_money: 'Lent Money',
-  savings: 'Savings Account',
-  fixed_deposit: 'Fixed Deposit',
-  investment: 'Investment',
-  property: 'Property',
-  retirement: 'Retirement',
-  other: 'Other',
-  custom: 'Custom',
-};
 
 export const AssetList = ({
   assets,
@@ -37,7 +24,7 @@ export const AssetList = ({
   const filterOptions = useMemo(
     () =>
       Object.values(AssetCategory).map((value) => ({
-        label: categoryLabels[value],
+        label: assetCategoryLabels[value],
         value: value,
         field: 'category' as keyof Asset,
       })),
@@ -56,11 +43,9 @@ export const AssetList = ({
       label: 'Category',
       minWidth: 120,
       sortable: true,
-      format: (value, row) => {
+      format: (_value, row) => {
         const asset = row as Asset;
-        const label = asset.category === 'custom' && asset.customCategoryName 
-          ? asset.customCategoryName 
-          : categoryLabels[value as AssetCategory];
+        const label = getAssetCategoryLabel(asset.category, asset.customCategoryName);
         return (
           <Chip
             size="small"
