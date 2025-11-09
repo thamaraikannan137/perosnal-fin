@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import env from "../config/env.js";
 
 export interface TokenPayload {
@@ -7,21 +7,33 @@ export interface TokenPayload {
   role?: string;
 }
 
+const assertSecret = (secret: string | undefined, secretName: string): string => {
+  if (!secret) {
+    throw new Error(`Missing ${secretName} environment variable`);
+  }
+  return secret;
+};
+
 export const generateAccessToken = (payload: TokenPayload): string => {
-  return jwt.sign(payload, env.JWT_SECRET, {
-    expiresIn: env.JWT_EXPIRES_IN,
-  });
+  const secret = assertSecret(env.JWT_SECRET, "JWT_SECRET");
+  const options: SignOptions = {
+    expiresIn: (env.JWT_EXPIRES_IN ?? "1h") as SignOptions["expiresIn"],
+  };
+  return jwt.sign(payload, secret, options);
 };
 
 export const generateRefreshToken = (payload: TokenPayload): string => {
-  return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
-    expiresIn: env.JWT_REFRESH_EXPIRES_IN,
-  });
+  const secret = assertSecret(env.JWT_REFRESH_SECRET, "JWT_REFRESH_SECRET");
+  const options: SignOptions = {
+    expiresIn: (env.JWT_REFRESH_EXPIRES_IN ?? "7d") as SignOptions["expiresIn"],
+  };
+  return jwt.sign(payload, secret, options);
 };
 
 export const verifyAccessToken = (token: string): TokenPayload => {
   try {
-    return jwt.verify(token, env.JWT_SECRET) as TokenPayload;
+    const secret = assertSecret(env.JWT_SECRET, "JWT_SECRET");
+    return jwt.verify(token, secret) as TokenPayload;
   } catch (error) {
     throw new Error("Invalid or expired access token");
   }
@@ -29,7 +41,8 @@ export const verifyAccessToken = (token: string): TokenPayload => {
 
 export const verifyRefreshToken = (token: string): TokenPayload => {
   try {
-    return jwt.verify(token, env.JWT_REFRESH_SECRET) as TokenPayload;
+    const secret = assertSecret(env.JWT_REFRESH_SECRET, "JWT_REFRESH_SECRET");
+    return jwt.verify(token, secret) as TokenPayload;
   } catch (error) {
     throw new Error("Invalid or expired refresh token");
   }
