@@ -46,9 +46,29 @@ export const AssetFormDialog = ({ open, onClose, onSubmit, initialAsset }: Asset
   const [selectedCustomCategoryId, setSelectedCustomCategoryId] = useState<string>('');
 
   useEffect(() => {
-    // Load custom asset category templates
-    const templates = customCategoryService.getTemplatesByType('asset');
-    setCustomCategoryTemplates(templates);
+    if (!open) return;
+
+    let isMounted = true;
+
+    const fetchTemplates = async () => {
+      try {
+        const templates = await customCategoryService.getTemplates('asset');
+        if (!isMounted) return;
+        setCustomCategoryTemplates(templates);
+      } catch (error) {
+        console.error('Failed to load custom asset categories', error);
+      }
+    };
+
+    void fetchTemplates();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
 
     if (initialAsset) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,14 +79,6 @@ export const AssetFormDialog = ({ open, onClose, onSubmit, initialAsset }: Asset
       });
       setDocuments(initialAsset.documents || []);
       setCustomFields(initialAsset.customFields || []);
-      
-      // If editing a custom category asset, find matching template
-      if (initialAsset.category === 'custom' && initialAsset.customCategoryName) {
-        const template = customCategoryService.getTemplateByName(initialAsset.customCategoryName);
-        if (template) {
-          setSelectedCustomCategoryId(template.id);
-        }
-      }
     } else {
       setFormValues(defaultValues);
       setDocuments([]);
@@ -75,6 +87,22 @@ export const AssetFormDialog = ({ open, onClose, onSubmit, initialAsset }: Asset
     }
     setErrors({});
   }, [initialAsset, open]);
+
+  useEffect(() => {
+    if (
+      initialAsset &&
+      initialAsset.category === 'custom' &&
+      initialAsset.customCategoryName &&
+      customCategoryTemplates.length > 0
+    ) {
+      const template = customCategoryTemplates.find(
+        (t) => t.name.toLowerCase() === initialAsset.customCategoryName?.toLowerCase()
+      );
+      if (template) {
+        setSelectedCustomCategoryId(template.id);
+      }
+    }
+  }, [initialAsset, customCategoryTemplates]);
 
   // Handle dynamic field changes
   const handleFieldChange = (fieldName: string, value: string | number | undefined) => {
@@ -87,17 +115,27 @@ export const AssetFormDialog = ({ open, onClose, onSubmit, initialAsset }: Asset
   // Handle custom category selection
   const handleCategoryChange = (categoryValue: string) => {
     // Check if it's a custom category (template ID)
-    const template = customCategoryTemplates.find(t => t.id === categoryValue);
+    const template = customCategoryTemplates.find((t) => t.id === categoryValue);
     
     if (template) {
       // It's a custom category - load fields from template
-      const fields = customCategoryService.createFieldsFromTemplate(template.id);
-      setFormValues((prev) => ({ ...prev, category: 'custom' }));
+      const fields = customCategoryService.createFieldsFromTemplate(template);
+      setFormValues((prev) => ({
+        ...prev,
+        category: 'custom',
+        customCategoryName: template.name,
+        customFields: fields,
+      }));
       setSelectedCustomCategoryId(template.id);
       setCustomFields(fields);
     } else {
       // It's a standard category
-      setFormValues((prev) => ({ ...prev, category: categoryValue as AssetCategory }));
+      setFormValues((prev) => ({
+        ...prev,
+        category: categoryValue as AssetCategory,
+        customCategoryName: undefined,
+        customFields: undefined,
+      }));
       setSelectedCustomCategoryId('');
       setCustomFields([]);
     }
@@ -147,11 +185,16 @@ export const AssetFormDialog = ({ open, onClose, onSubmit, initialAsset }: Asset
 
   // Custom field handlers
   const handleCustomFieldChange = (fieldId: string, updates: Partial<CustomFieldDefinition>) => {
-    setCustomFields((prev) =>
-      prev.map((field) =>
+    setCustomFields((prev) => {
+      const updatedFields = prev.map((field) =>
         field.id === fieldId ? { ...field, ...updates } : field
-      )
-    );
+      );
+      setFormValues((prevValues) => ({
+        ...prevValues,
+        customFields: updatedFields,
+      }));
+      return updatedFields;
+    });
   };
 
   const handleSubmit = () => {
@@ -160,7 +203,7 @@ export const AssetFormDialog = ({ open, onClose, onSubmit, initialAsset }: Asset
     // Get custom category name if applicable
     const customCategoryName = selectedCustomCategoryId 
       ? customCategoryTemplates.find(t => t.id === selectedCustomCategoryId)?.name 
-      : undefined;
+      : (formValues.category === 'custom' ? (formValues.customCategoryName ?? initialAsset?.customCategoryName) : undefined);
 
     onSubmit({
       ...formValues,

@@ -74,13 +74,17 @@ const assetSchema = new Schema<IAsset>(
       type: String,
       trim: true,
     },
-    customFields: [{
-      id: String,
-      name: String,
-      type: String,
-      value: Schema.Types.Mixed,
-      required: Boolean,
-    }],
+    customFields: {
+      type: [{
+        id: { type: String, required: true },
+        name: { type: String, required: true },
+        type: { type: String, required: true },
+        value: { type: Schema.Types.Mixed, default: null },
+        required: { type: Boolean, default: false },
+        placeholder: { type: String, required: false },
+      }],
+      default: undefined,
+    },
     customCategoryName: {
       type: String,
       trim: true,

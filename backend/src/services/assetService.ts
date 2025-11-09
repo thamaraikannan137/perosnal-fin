@@ -33,10 +33,27 @@ export interface UpdateAssetData {
 
 class AssetService {
   async createAsset(data: CreateAssetData): Promise<IAsset> {
+    // Transform customFields if it's a string (parse JSON)
+    let customFields = data.customFields;
+    if (customFields && typeof customFields === 'string') {
+      try {
+        customFields = JSON.parse(customFields);
+      } catch (error) {
+        console.error('Failed to parse customFields:', error);
+        customFields = undefined;
+      }
+    }
+    
+    // Ensure customFields is an array or undefined
+    if (customFields && !Array.isArray(customFields)) {
+      customFields = undefined;
+    }
+
     // Convert userId string to ObjectId
     const assetData = {
       ...data,
       userId: new mongoose.Types.ObjectId(data.userId),
+      customFields: customFields,
     };
     const asset = await Asset.create(assetData);
     return asset;
@@ -83,6 +100,25 @@ class AssetService {
 
   async updateAsset(id: string, userId: string, data: UpdateAssetData): Promise<IAsset> {
     const asset = await this.getAssetById(id, userId);
+    
+    // Transform customFields if it's a string (parse JSON)
+    if (data.customFields !== undefined) {
+      let customFields: unknown = data.customFields;
+      if (typeof customFields === 'string') {
+        try {
+          customFields = JSON.parse(customFields);
+        } catch (error) {
+          console.error('Failed to parse customFields:', error);
+          customFields = undefined;
+        }
+      }
+
+      const normalizedCustomFields = Array.isArray(customFields)
+        ? customFields
+        : undefined;
+
+      data.customFields = normalizedCustomFields;
+    }
     
     Object.assign(asset, data);
     await asset.save();

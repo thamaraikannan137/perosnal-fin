@@ -51,14 +51,34 @@ export const LiabilityFormDialog = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [customCategoryTemplates, setCustomCategoryTemplates] = useState<CustomCategoryTemplate[]>([]);
   const [customFields, setCustomFields] = useState<CustomFieldDefinition[]>([]);
+  const [selectedCustomCategoryId, setSelectedCustomCategoryId] = useState<string>('');
 
   // Load liability custom categories
   useEffect(() => {
-    const templates = customCategoryService.getTemplatesByType('liability');
-    setCustomCategoryTemplates(templates);
-  }, []);
+    if (!open) return;
+
+    let isMounted = true;
+
+    const fetchTemplates = async () => {
+      try {
+        const templates = await customCategoryService.getTemplates('liability');
+        if (!isMounted) return;
+        setCustomCategoryTemplates(templates);
+      } catch (error) {
+        console.error('Failed to load custom liability categories', error);
+      }
+    };
+
+    void fetchTemplates();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [open]);
 
   useEffect(() => {
+    if (!open) return;
+
     if (initialLiability) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id: _id, updatedAt: _updatedAt, ...rest } = initialLiability;
@@ -66,11 +86,30 @@ export const LiabilityFormDialog = ({
         ...defaultValues,
         ...rest,
       });
+      setCustomFields(initialLiability.customFields || []);
     } else {
       setFormValues(defaultValues);
+      setCustomFields([]);
+      setSelectedCustomCategoryId('');
     }
     setErrors({});
   }, [initialLiability, open]);
+
+  useEffect(() => {
+    if (
+      initialLiability &&
+      initialLiability.category === 'custom' &&
+      initialLiability.customCategoryName &&
+      customCategoryTemplates.length > 0
+    ) {
+      const template = customCategoryTemplates.find(
+        (t) => t.name.toLowerCase() === initialLiability.customCategoryName?.toLowerCase()
+      );
+      if (template) {
+        setSelectedCustomCategoryId(template.id);
+      }
+    }
+  }, [initialLiability, customCategoryTemplates]);
 
   const handleChange = (field: keyof LiabilityFormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -96,8 +135,9 @@ export const LiabilityFormDialog = ({
     
     if (template) {
       // Load custom fields from template
-      const fields = customCategoryService.createFieldsFromTemplate(template.id);
+      const fields = customCategoryService.createFieldsFromTemplate(template);
       setCustomFields(fields);
+      setSelectedCustomCategoryId(template.id);
       setFormValues((prev) => ({
         ...prev,
         category: 'custom' as LiabilityCategory,
@@ -107,6 +147,7 @@ export const LiabilityFormDialog = ({
     } else {
       // Standard category
       setCustomFields([]);
+      setSelectedCustomCategoryId('');
       setFormValues((prev) => ({
         ...prev,
         category: newCategory as LiabilityCategory,
@@ -117,17 +158,16 @@ export const LiabilityFormDialog = ({
   };
 
   const handleCustomFieldChange = (fieldId: string, updates: Partial<CustomFieldDefinition>) => {
-    setCustomFields((prev) =>
-      prev.map((field) =>
+    setCustomFields((prev) => {
+      const updatedFields = prev.map((field) =>
         field.id === fieldId ? { ...field, ...updates } : field
-      )
-    );
-    setFormValues((prev) => ({
-      ...prev,
-      customFields: customFields.map((field) =>
-        field.id === fieldId ? { ...field, ...updates } : field
-      ),
-    }));
+      );
+      setFormValues((prevValues) => ({
+        ...prevValues,
+        customFields: updatedFields,
+      }));
+      return updatedFields;
+    });
   };
 
   const validate = () => {
@@ -151,13 +191,17 @@ export const LiabilityFormDialog = ({
   const handleSubmit = () => {
     if (!validate()) return;
 
+    const customCategoryName = selectedCustomCategoryId
+      ? customCategoryTemplates.find((t) => t.id === selectedCustomCategoryId)?.name
+      : (formValues.category === 'custom' ? formValues.customCategoryName : undefined);
+
     onSubmit({
       ...formValues,
       balance: Number(formValues.balance),
       interestRate:
         formValues.interestRate === undefined ? undefined : Number(formValues.interestRate),
       customFields: formValues.category === 'custom' ? customFields : undefined,
-      customCategoryName: formValues.customCategoryName,
+      customCategoryName,
     });
   };
 
@@ -178,11 +222,7 @@ export const LiabilityFormDialog = ({
           <TextField
             label="Category"
             select
-            value={
-              formValues.category === 'custom' && formValues.customCategoryName
-                ? customCategoryTemplates.find((t) => t.name === formValues.customCategoryName)?.id || formValues.category
-                : formValues.category
-            }
+            value={selectedCustomCategoryId || formValues.category}
             onChange={handleCategoryChange}
             fullWidth
             required

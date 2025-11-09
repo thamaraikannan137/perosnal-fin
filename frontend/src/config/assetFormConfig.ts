@@ -71,9 +71,10 @@ export const getAssetFormStructure = (
 ): AssetFormStructure => {
   return {
     topFields: commonAssetFields,
-    categorySpecificFields: categoryFields,
     valueField: assetValueField,
     bottomFields: bottomAssetFields,
+    categorySpecificFields: categoryFields,
+    
   };
 };
 

@@ -40,5 +40,9 @@ export const API_ENDPOINTS = {
   LIABILITIES: '/liabilities',
   LIABILITY_BY_ID: (id: string) => `/liabilities/${id}`,
   LIABILITY_SUMMARY: '/liabilities/summary',
+  
+  // Custom Category Endpoints
+  CUSTOM_CATEGORIES: '/custom-categories',
+  CUSTOM_CATEGORY_BY_ID: (id: string) => `/custom-categories/${id}`,
 } as const;
 

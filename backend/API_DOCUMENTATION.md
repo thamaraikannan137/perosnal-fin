@@ -501,6 +501,214 @@ Authorization: Bearer <your_jwt_token>
 
 ---
 
+## 🧩 Custom Category Templates
+
+Custom categories allow users to create reusable templates with custom fields for both assets and liabilities.
+
+All endpoints require authentication (`Authorization: Bearer <token>`).
+
+### 1. List Custom Categories
+**GET** `/custom-categories?type=asset`
+
+**Query Parameters (optional):**
+- `type`: `asset` or `liability` (if omitted, returns all categories)
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Custom categories retrieved successfully",
+  "data": {
+    "templates": [
+      {
+        "id": "672b6dd6f4b8c8de29e3ff91",
+        "name": "Vehicle",
+        "categoryType": "asset",
+        "description": "Track cars, bikes, and other vehicles",
+        "icon": "ri-car-line",
+        "fields": [
+          {
+            "id": "field-make",
+            "name": "Make & Model",
+            "type": "text",
+            "required": true,
+            "placeholder": "e.g., Tesla Model 3"
+          },
+          {
+            "id": "field-purchase-price",
+            "name": "Purchase Price",
+            "type": "currency",
+            "required": true
+          }
+        ],
+        "createdAt": "2024-11-09T14:21:34.000Z",
+        "updatedAt": "2024-11-09T14:21:34.000Z"
+      }
+    ]
+  },
+  "timestamp": "2024-11-09T14:22:00.000Z"
+}
+```
+
+### 2. Create Custom Category
+**POST** `/custom-categories`
+
+**Request Body:**
+```json
+{
+  "name": "Consulting Clients",
+  "categoryType": "asset",
+  "description": "Track outstanding invoices for consulting work",
+  "fields": [
+    {
+      "id": "field-client",
+      "name": "Client Name",
+      "type": "text",
+      "required": true,
+      "placeholder": "e.g., Acme Corp"
+    },
+    {
+      "id": "field-invoice-amount",
+      "name": "Invoice Amount",
+      "type": "currency",
+      "required": true
+    },
+    {
+      "id": "field-due-date",
+      "name": "Due Date",
+      "type": "date",
+      "required": false
+    }
+  ]
+}
+```
+
+**Response:** `201 Created`
+```json
+{
+  "success": true,
+  "message": "Custom category created successfully",
+  "data": {
+    "template": {
+      "id": "672b6f99f4b8c8de29e3ff92",
+      "name": "Consulting Clients",
+      "categoryType": "asset",
+      "description": "Track outstanding invoices for consulting work",
+      "fields": [
+        {
+          "id": "field-client",
+          "name": "Client Name",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., Acme Corp"
+        },
+        {
+          "id": "field-invoice-amount",
+          "name": "Invoice Amount",
+          "type": "currency",
+          "required": true
+        },
+        {
+          "id": "field-due-date",
+          "name": "Due Date",
+          "type": "date",
+          "required": false
+        }
+      ],
+      "createdAt": "2024-11-09T14:25:01.000Z",
+      "updatedAt": "2024-11-09T14:25:01.000Z"
+    }
+  },
+  "timestamp": "2024-11-09T14:25:01.000Z"
+}
+```
+
+### 3. Update Custom Category
+**PUT** `/custom-categories/:id`
+
+**Request Body (any updatable field):**
+```json
+{
+  "name": "Consulting Accounts Receivable",
+  "description": "Updated description for consulting invoices",
+  "fields": [
+    {
+      "id": "field-client",
+      "name": "Client Name",
+      "type": "text",
+      "required": true
+    },
+    {
+      "id": "field-invoice-amount",
+      "name": "Invoice Amount",
+      "type": "currency",
+      "required": true
+    },
+    {
+      "id": "field-status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "placeholder": "e.g., Sent, Paid, Overdue"
+    }
+  ]
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Custom category updated successfully",
+  "data": {
+    "template": {
+      "id": "672b6f99f4b8c8de29e3ff92",
+      "name": "Consulting Accounts Receivable",
+      "categoryType": "asset",
+      "description": "Updated description for consulting invoices",
+      "fields": [
+        {
+          "id": "field-client",
+          "name": "Client Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "field-invoice-amount",
+          "name": "Invoice Amount",
+          "type": "currency",
+          "required": true
+        },
+        {
+          "id": "field-status",
+          "name": "Status",
+          "type": "text",
+          "required": false,
+          "placeholder": "e.g., Sent, Paid, Overdue"
+        }
+      ],
+      "createdAt": "2024-11-09T14:25:01.000Z",
+      "updatedAt": "2024-11-09T14:28:44.000Z"
+    }
+  },
+  "timestamp": "2024-11-09T14:28:44.000Z"
+}
+```
+
+### 4. Delete Custom Category
+**DELETE** `/custom-categories/:id`
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Custom category deleted successfully",
+  "timestamp": "2024-11-09T14:30:12.000Z"
+}
+```
+
+---
+
 ## ❌ Error Responses
 
 ### 400 Bad Request

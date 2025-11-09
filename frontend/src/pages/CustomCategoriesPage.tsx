@@ -19,6 +19,7 @@ import {
   CardActions,
   Tabs,
   Tab,
+  CircularProgress,
 } from '@mui/material';
 import { customCategoryService } from '../services/customCategoryService';
 import type { CustomCategoryTemplate, CustomFieldDefinition, CustomFieldType, CategoryTemplateType } from '../types/models';
@@ -52,6 +53,8 @@ export const CustomCategoriesPage = () => {
   const [activeTab, setActiveTab] = useState<CategoryTemplateType>('asset');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<CustomCategoryTemplate | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState('');
   
   // Form state
   const [categoryName, setCategoryName] = useState('');
@@ -60,14 +63,23 @@ export const CustomCategoriesPage = () => {
   const [customFields, setCustomFields] = useState<Omit<CustomFieldDefinition, 'value'>[]>([]);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadTemplates();
-  }, []);
-
-  const loadTemplates = () => {
-    const loadedTemplates = customCategoryService.getTemplates();
-    setTemplates(loadedTemplates);
+  const loadTemplates = async () => {
+    try {
+      setLoading(true);
+      setFetchError('');
+      const loadedTemplates = await customCategoryService.getTemplates();
+      setTemplates(loadedTemplates);
+    } catch (error) {
+      console.error('Failed to load custom categories', error);
+      setFetchError('Failed to load custom categories. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    void loadTemplates();
+  }, []);
 
   const handleOpenDialog = (template?: CustomCategoryTemplate) => {
     if (template) {
@@ -121,7 +133,7 @@ export const CustomCategoriesPage = () => {
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validation
     if (!categoryName.trim()) {
       setError('Category name is required');
@@ -140,36 +152,46 @@ export const CustomCategoriesPage = () => {
     }
 
     try {
+      const sanitizedFields = customFields.map((field) => ({
+        ...field,
+        name: field.name.trim(),
+        placeholder: field.placeholder?.trim() || undefined,
+      }));
+
+      const payload = {
+        name: categoryName.trim(),
+        categoryType,
+        description: categoryDescription.trim() ? categoryDescription.trim() : undefined,
+        fields: sanitizedFields,
+      };
+
       if (editingTemplate) {
         // Update existing
-        customCategoryService.updateTemplate(editingTemplate.id, {
-          name: categoryName,
-          categoryType: categoryType,
-          description: categoryDescription,
-          fields: customFields,
-        });
+        await customCategoryService.updateTemplate(editingTemplate.id, payload);
       } else {
         // Create new
-        customCategoryService.createTemplate({
-          name: categoryName,
-          categoryType: categoryType,
-          description: categoryDescription,
-          fields: customFields,
-        });
+        await customCategoryService.createTemplate(payload);
       }
-      loadTemplates();
+      await loadTemplates();
       handleCloseDialog();
     } catch (err) {
-      setError((err as Error).message);
+      const message = (err as Error)?.message || 'Failed to save custom category';
+      setError(message);
     }
   };
 
   const handleDelete = (templateId: string) => {
     if (window.confirm('Are you sure you want to delete this custom category? This action cannot be undone.')) {
-      customCategoryService.deleteTemplate(templateId);
-      loadTemplates();
+      customCategoryService.deleteTemplate(templateId)
+        .then(() => loadTemplates())
+        .catch((error) => {
+          console.error('Failed to delete custom category', error);
+          setFetchError('Failed to delete custom category. Please try again.');
+        });
     }
   };
+
+  const filteredTemplates = templates.filter((t) => t.categoryType === activeTab);
 
   return (
     <Stack spacing={3}>
@@ -188,6 +210,7 @@ export const CustomCategoriesPage = () => {
           startIcon={<i className="ri-add-line" />}
           onClick={() => handleOpenDialog()}
           color={activeTab === 'asset' ? 'primary' : 'error'}
+          disabled={loading}
         >
           Create {activeTab === 'asset' ? 'Asset' : 'Liability'} Category
         </Button>
@@ -197,6 +220,12 @@ export const CustomCategoriesPage = () => {
       <Alert severity="info">
         Custom categories allow you to track any type of asset or liability with fields you define. Once created, they'll appear as options when adding new assets or liabilities. <strong>Note:</strong> Document upload, document URL, and notes are automatically available for all custom categories.
       </Alert>
+
+      {fetchError && (
+        <Alert severity="error" onClose={() => setFetchError('')}>
+          {fetchError}
+        </Alert>
+      )}
 
       {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -239,7 +268,11 @@ export const CustomCategoriesPage = () => {
       </Box>
 
       {/* Templates Grid */}
-      {templates.filter(t => t.categoryType === activeTab).length === 0 ? (
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      ) : filteredTemplates.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 8 }}>
           <i className="ri-folder-add-line" style={{ fontSize: '64px', color: '#bdbdbd' }} />
           <Typography variant="h6" color="text.secondary" sx={{ mt: 2 }}>
@@ -258,7 +291,7 @@ export const CustomCategoriesPage = () => {
         </Box>
       ) : (
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
-          {templates.filter(t => t.categoryType === activeTab).map((template) => (
+          {filteredTemplates.map((template) => (
             <Card key={template.id} sx={{ display: 'flex', flexDirection: 'column' }}>
               <CardContent sx={{ flex: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
