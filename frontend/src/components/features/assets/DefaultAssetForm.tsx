@@ -5,7 +5,7 @@ import { getAssetFormStructure } from '../../../config/assetFormConfig';
 import { DynamicFieldRenderer } from './DynamicFieldRenderer';
 import { AssetDynamicFields } from './AssetDynamicFields';
 
-interface DynamicAssetFormProps {
+interface DefaultAssetFormProps {
   category: AssetCategory;
   formValues: AssetCreateInput;
   errors: Record<string, string>;
@@ -19,7 +19,7 @@ interface DynamicAssetFormProps {
  * Fully dynamic form that renders all fields based on configuration
  * No hardcoded fields - everything comes from config
  */
-export const DynamicAssetForm = ({
+export const DefaultAssetForm = ({
   category,
   formValues,
   errors,
@@ -27,7 +27,7 @@ export const DynamicAssetForm = ({
   documents,
   handleFileUpload,
   handleRemoveDocument,
-}: DynamicAssetFormProps) => {
+}: DefaultAssetFormProps) => {
   
   // Get category-specific fields (skip for custom categories - they use CustomFieldsRenderer)
   const categoryFields = category === 'custom' ? [] : getFieldsForCategory(category);
@@ -90,5 +90,5 @@ export const DynamicAssetForm = ({
   );
 };
 
-export default DynamicAssetForm;
+export default DefaultAssetForm;
 

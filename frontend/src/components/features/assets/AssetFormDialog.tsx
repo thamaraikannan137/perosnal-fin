@@ -13,7 +13,7 @@ import {
 import type { Asset, AssetCreateInput, AssetCategory, CustomFieldDefinition, CustomCategoryTemplate } from '../../../types';
 import { Button, CustomFieldsRenderer } from '../../common';
 import { customCategoryService } from '../../../services/customCategoryService';
-import { DynamicAssetForm } from './DynamicAssetForm';
+import { DefaultAssetForm } from './DefaultAssetForm';
 import { assetCategoryOptions, assetCategoryLabels } from '../../../config/categoryConfig';
 
 type AssetFormValues = AssetCreateInput;
@@ -204,7 +204,7 @@ export const AssetFormDialog = ({ open, onClose, onSubmit, initialAsset }: Asset
               ))
             ]}
           </TextField>
-          <DynamicAssetForm
+          <DefaultAssetForm
             category={formValues.category}
             formValues={formValues}
             errors={errors}

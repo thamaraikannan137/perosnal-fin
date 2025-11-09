@@ -2,5 +2,5 @@ export { AssetList } from './AssetList';
 export { AssetFormDialog } from './AssetFormDialog';
 export { AssetDynamicFields } from './AssetDynamicFields';
 export { DynamicFieldRenderer } from './DynamicFieldRenderer';
-export { DynamicAssetForm } from './DynamicAssetForm';
+export { DefaultAssetForm } from './DefaultAssetForm';
 
