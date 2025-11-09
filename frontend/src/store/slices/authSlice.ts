@@ -21,10 +21,23 @@ interface AuthState {
   error: string | null;
 }
 
+// Load user from localStorage on initialization
+const storedUser = localStorage.getItem('user');
+const storedToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+let parsedUser: User | null = null;
+
+if (storedUser) {
+  try {
+    parsedUser = JSON.parse(storedUser);
+  } catch (error) {
+    console.error('Failed to parse stored user:', error);
+  }
+}
+
 const initialState: AuthState = {
-  user: null,
-  token: localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN),
-  isAuthenticated: false,
+  user: parsedUser,
+  token: storedToken,
+  isAuthenticated: !!(storedToken && parsedUser),
   loading: false,
   error: null,
 };
@@ -39,8 +52,8 @@ export const login = createAsyncThunk(
         user: response.user,
         token: response.accessToken,
       };
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Invalid credentials';
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Invalid credentials';
       return rejectWithValue(message);
     }
   }
