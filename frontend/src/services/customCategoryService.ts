@@ -6,6 +6,13 @@ import type {
 import { apiClient } from './api';
 import { API_ENDPOINTS } from '../config/constants';
 
+interface ApiSuccess<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: string;
+}
+
 interface CustomCategoryPayload {
   name: string;
   categoryType: CategoryTemplateType;
@@ -28,36 +35,37 @@ const sanitizeFields = (
 class CustomCategoryService {
   async getTemplates(categoryType?: CategoryTemplateType): Promise<CustomCategoryTemplate[]> {
     const query = categoryType ? `?type=${categoryType}` : '';
-    const response = await apiClient.get<{ templates: CustomCategoryTemplate[] }>(
-      `${API_ENDPOINTS.CUSTOM_CATEGORIES}${query}`,
-    );
-    return response.templates ?? [];
+    const response = await apiClient.get<
+      ApiSuccess<{ templates: CustomCategoryTemplate[] }>
+    >(`${API_ENDPOINTS.CUSTOM_CATEGORIES}${query}`);
+    return response.data?.templates ?? [];
   }
 
   async createTemplate(payload: CustomCategoryPayload): Promise<CustomCategoryTemplate> {
-    const response = await apiClient.post<{ template: CustomCategoryTemplate }>(
-      API_ENDPOINTS.CUSTOM_CATEGORIES,
-      {
-        ...payload,
-        fields: sanitizeFields(payload.fields),
-      },
-    );
-    return response.template;
+    const response = await apiClient.post<
+      ApiSuccess<{ template: CustomCategoryTemplate }>
+    >(API_ENDPOINTS.CUSTOM_CATEGORIES, {
+      ...payload,
+      fields: sanitizeFields(payload.fields),
+    });
+    return response.data.template;
   }
 
   async updateTemplate(
     id: string,
     updates: Partial<CustomCategoryPayload>,
   ): Promise<CustomCategoryTemplate> {
-    const response = await apiClient.put<{ template: CustomCategoryTemplate }>(
+    const response = await apiClient.put<
+      ApiSuccess<{ template: CustomCategoryTemplate }>
+    >(
       API_ENDPOINTS.CUSTOM_CATEGORY_BY_ID(id),
       updates.fields ? { ...updates, fields: sanitizeFields(updates.fields) } : updates,
     );
-    return response.template;
+    return response.data.template;
   }
 
   async deleteTemplate(id: string): Promise<void> {
-    await apiClient.delete(API_ENDPOINTS.CUSTOM_CATEGORY_BY_ID(id));
+    await apiClient.delete<ApiSuccess<null>>(API_ENDPOINTS.CUSTOM_CATEGORY_BY_ID(id));
   }
 
   createFieldsFromTemplate(template: CustomCategoryTemplate): CustomFieldDefinition[] {

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Table,
@@ -16,6 +16,7 @@ import {
   Typography,
   Paper,
   Stack,
+  TablePagination,
   alpha,
 } from '@mui/material';
 import { Button } from '.';
@@ -67,6 +68,8 @@ export function DataGrid<T extends Record<string, unknown>>({
   const [filterValue, setFilterValue] = useState<string>('');
   const [filterAnchor, setFilterAnchor] = useState<null | HTMLElement>(null);
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -176,6 +179,28 @@ export function DataGrid<T extends Record<string, unknown>>({
 
     return filtered;
   }, [data, searchQuery, filterValue, columnFilters, orderBy, order, columns, filterable, filterOptions]);
+
+  const handleChangePage = (_event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const paginatedData = useMemo(() => {
+    const start = page * rowsPerPage;
+    return filteredAndSortedData.slice(start, start + rowsPerPage);
+  }, [filteredAndSortedData, page, rowsPerPage]);
+
+  // Reset to first page if filters change and current page is out of bounds
+  useEffect(() => {
+    const maxPage = Math.max(0, Math.ceil(filteredAndSortedData.length / rowsPerPage) - 1);
+    if (page > maxPage) {
+      setPage(0);
+    }
+  }, [filteredAndSortedData.length, rowsPerPage, page]);
 
   if (loading) {
     return (
@@ -314,18 +339,6 @@ export function DataGrid<T extends Record<string, unknown>>({
                           </Typography>
                         )}
                       </Box>
-                      {column.filterable !== false && (
-                        <IconButton
-                          size="small"
-                          sx={{
-                            p: 0.5,
-                            ml: 0.5,
-                            color: columnFilters[String(column.id)] ? 'primary.main' : 'text.secondary',
-                          }}
-                        >
-                          <i className="ri-filter-line" style={{ fontSize: '16px' }} />
-                        </IconButton>
-                      )}
                     </Box>
                     {column.filterable !== false && (
                       <TextField
@@ -396,7 +409,7 @@ export function DataGrid<T extends Record<string, unknown>>({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredAndSortedData.map((row) => (
+              paginatedData.map((row) => (
                 <TableRow
                   key={getRowId(row)}
                   hover
@@ -427,6 +440,17 @@ export function DataGrid<T extends Record<string, unknown>>({
           </TableBody>
         </Table>
       </TableContainer>
+      <TablePagination
+        component="div"
+        count={filteredAndSortedData.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        rowsPerPageOptions={[5, 10, 25, 50, 100]}
+        labelRowsPerPage="Rows per page"
+        sx={{ mt: 1 }}
+      />
     </Box>
   );
 }
