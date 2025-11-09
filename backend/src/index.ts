@@ -1,7 +1,7 @@
 import express from "express";
-import type { Request, Response } from "express";
+import type { Request, Response, RequestHandler } from "express";
 import cors from "cors";
-import helmet from "helmet";
+import helmet, { type HelmetOptions } from "helmet";
 import env from "./config/env.js";
 import { connectDatabase } from "./config/database.js";
 import logger from "./config/logger.js";
@@ -16,7 +16,13 @@ const app = express();
 app.set("trust proxy", 1);
 
 // Security middleware
-app.use(helmet());
+type HelmetInitializer = (options?: Readonly<HelmetOptions>) => RequestHandler;
+const helmetInitializer: HelmetInitializer =
+  typeof helmet === "function"
+    ? (helmet as HelmetInitializer)
+    : ((helmet as { default: HelmetInitializer }).default as HelmetInitializer);
+
+app.use(helmetInitializer());
 app.use(
   cors({
     origin: env.CORS_ORIGIN,
