@@ -4,7 +4,7 @@ export interface ILiability extends Document {
   _id: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   name: string;
-  category: 'credit' | 'loan' | 'mortgage' | 'tax' | 'other' | 'custom';
+  category: string; // Flexible - accepts any category string
   balance: number;
   interestRate?: number;
   dueDate?: string;
@@ -40,8 +40,9 @@ const liabilitySchema = new Schema<ILiability>(
     },
     category: {
       type: String,
-      enum: ['credit', 'loan', 'mortgage', 'tax', 'other', 'custom'],
       required: [true, "Category is required"],
+      trim: true,
+      // No enum - allows any category including custom ones
     },
     balance: {
       type: Number,

@@ -2,15 +2,12 @@ import type { Request, Response, NextFunction } from "express";
 import { ZodSchema } from "zod";
 import { ValidationError } from "../utils/errors.js";
 
+// Simplified validation middleware - always validates req.body
 export const validate = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
-      const result = schema.safeParse({
-        body: req.body,
-        query: req.query,
-        params: req.params,
-      });
-
+      const result = schema.safeParse(req.body);
+      
       if (!result.success) {
         const errors = result.error.errors.map((err: { path: (string | number)[]; message: string }) => ({
           path: err.path.join("."),
@@ -18,11 +15,9 @@ export const validate = (schema: ZodSchema) => {
         }));
         throw new ValidationError(JSON.stringify(errors));
       }
-
-      req.body = result.data.body || req.body;
-      req.query = result.data.query || req.query;
-      req.params = result.data.params || req.params;
-
+      
+      // Update body with validated data
+      req.body = result.data;
       next();
     } catch (error) {
       next(error);

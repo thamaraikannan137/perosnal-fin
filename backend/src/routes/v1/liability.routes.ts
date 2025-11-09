@@ -5,7 +5,6 @@ import { validate } from "../../middlewares/validation.middleware.js";
 import {
   createLiabilitySchema,
   updateLiabilitySchema,
-  getLiabilityByIdSchema,
 } from "../../validators/liability.validator.js";
 
 const router = Router();
@@ -20,7 +19,7 @@ router.get("/", liabilityController.getLiabilities);
 router.get("/summary", liabilityController.getLiabilitySummary);
 
 // GET /api/v1/liabilities/:id - Get liability by ID
-router.get("/:id", validate(getLiabilityByIdSchema), liabilityController.getLiabilityById);
+router.get("/:id", liabilityController.getLiabilityById);
 
 // POST /api/v1/liabilities - Create new liability
 router.post("/", validate(createLiabilitySchema), liabilityController.createLiability);
@@ -29,7 +28,7 @@ router.post("/", validate(createLiabilitySchema), liabilityController.createLiab
 router.put("/:id", validate(updateLiabilitySchema), liabilityController.updateLiability);
 
 // DELETE /api/v1/liabilities/:id - Delete liability
-router.delete("/:id", validate(getLiabilityByIdSchema), liabilityController.deleteLiability);
+router.delete("/:id", liabilityController.deleteLiability);
 
 export default router;
 

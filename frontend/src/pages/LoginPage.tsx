@@ -10,6 +10,7 @@ import Checkbox from '@mui/material/Checkbox';
 import Button from '@mui/material/Button';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Divider from '@mui/material/Divider';
+import Alert from '@mui/material/Alert';
 import { styled, useTheme } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
@@ -17,6 +18,7 @@ import Link from '@mui/material/Link';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '../contexts/AuthContext';
 
 // Icons
 import Visibility from '@mui/icons-material/Visibility';
@@ -58,10 +60,13 @@ const loginSchema = z.object({
 export const LoginPage = () => {
   // States
   const [isPasswordShown, setIsPasswordShown] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Hooks
   const navigate = useNavigate();
   const theme = useTheme();
+  const { login } = useAuth();
 
   const handleClickShowPassword = () => setIsPasswordShown(show => !show);
 
@@ -70,9 +75,18 @@ export const LoginPage = () => {
     defaultValues: { email: '', password: '' }
   });
 
-  const onSubmit = () => {
-    localStorage.setItem('isAuthenticated', 'true');
-    navigate('/');
+  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      await login(data.email, data.password);
+      navigate('/');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || 'Invalid email or password');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -98,6 +112,13 @@ export const LoginPage = () => {
             <Typography variant='h4'>Welcome! 👋🏻</Typography>
             <Typography>Please sign-in to your account and start the adventure</Typography>
           </Box>
+          
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+              {error}
+            </Alert>
+          )}
+          
           <form
             noValidate
             autoComplete='off'
@@ -155,8 +176,8 @@ export const LoginPage = () => {
                   Forgot password?
                 </Link>
               </Box>
-              <Button fullWidth variant='contained' type='submit'>
-                Log In
+              <Button fullWidth variant='contained' type='submit' disabled={isLoading}>
+                {isLoading ? 'Logging in...' : 'Log In'}
               </Button>
               <Box className='flex justify-center items-center flex-wrap gap-2'>
                 <Typography>New on our platform?</Typography>

@@ -5,7 +5,6 @@ import { validate } from "../../middlewares/validation.middleware.js";
 import {
   createAssetSchema,
   updateAssetSchema,
-  getAssetByIdSchema,
 } from "../../validators/asset.validator.js";
 
 const router = Router();
@@ -20,7 +19,7 @@ router.get("/", assetController.getAssets);
 router.get("/summary", assetController.getAssetSummary);
 
 // GET /api/v1/assets/:id - Get asset by ID
-router.get("/:id", validate(getAssetByIdSchema), assetController.getAssetById);
+router.get("/:id", assetController.getAssetById);
 
 // POST /api/v1/assets - Create new asset
 router.post("/", validate(createAssetSchema), assetController.createAsset);
@@ -29,7 +28,7 @@ router.post("/", validate(createAssetSchema), assetController.createAsset);
 router.put("/:id", validate(updateAssetSchema), assetController.updateAsset);
 
 // DELETE /api/v1/assets/:id - Delete asset
-router.delete("/:id", validate(getAssetByIdSchema), assetController.deleteAsset);
+router.delete("/:id", assetController.deleteAsset);
 
 export default router;
 

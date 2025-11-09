@@ -1,8 +1,17 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { User, LoginFormData } from '../../types';
-import { API_ENDPOINTS, STORAGE_KEYS } from '../../config/constants';
-import { apiClient } from '../../services/api';
+import type { LoginFormData } from '../../types';
+import { STORAGE_KEYS } from '../../config/constants';
+import { authService } from '../../services/authService';
+
+interface User {
+  _id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  isActive: boolean;
+}
 
 interface AuthState {
   user: User | null;
@@ -25,16 +34,14 @@ export const login = createAsyncThunk(
   'auth/login',
   async (credentials: LoginFormData, { rejectWithValue }) => {
     try {
-      // Use apiClient with axios
-      const data = await apiClient.post<{ user: User; token: string }>(
-        API_ENDPOINTS.AUTH.LOGIN,
-        credentials
-      );
-      
-      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, data.token);
-      return data;
-    } catch {
-      return rejectWithValue('Invalid credentials');
+      const response = await authService.login(credentials);
+      return {
+        user: response.user,
+        token: response.accessToken,
+      };
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Invalid credentials';
+      return rejectWithValue(message);
     }
   }
 );
@@ -42,8 +49,7 @@ export const login = createAsyncThunk(
 export const logout = createAsyncThunk(
   'auth/logout',
   async () => {
-    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-    // Call logout API if needed
+    authService.logout();
   }
 );
 

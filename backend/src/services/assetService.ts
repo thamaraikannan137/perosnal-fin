@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Asset, { type IAsset } from "../models/Asset.js";
 import { NotFoundError } from "../utils/errors.js";
 
@@ -32,12 +33,20 @@ export interface UpdateAssetData {
 
 class AssetService {
   async createAsset(data: CreateAssetData): Promise<IAsset> {
-    const asset = await Asset.create(data);
+    // Convert userId string to ObjectId
+    const assetData = {
+      ...data,
+      userId: new mongoose.Types.ObjectId(data.userId),
+    };
+    const asset = await Asset.create(assetData);
     return asset;
   }
 
   async getAssetById(id: string, userId: string): Promise<IAsset> {
-    const asset = await Asset.findOne({ _id: id, userId });
+    const asset = await Asset.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+      userId: new mongoose.Types.ObjectId(userId)
+    });
     if (!asset) {
       throw new NotFoundError("Asset not found");
     }
@@ -51,7 +60,7 @@ class AssetService {
     category?: string
   ): Promise<{ assets: IAsset[]; total: number; pages: number }> {
     const skip = (page - 1) * limit;
-    const query: any = { userId };
+    const query: any = { userId: new mongoose.Types.ObjectId(userId) };
     
     if (category) {
       query.category = category;
@@ -88,7 +97,7 @@ class AssetService {
 
   async getTotalValue(userId: string): Promise<number> {
     const result = await Asset.aggregate([
-      { $match: { userId: userId as any } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
       { $group: { _id: null, total: { $sum: "$value" } } }
     ]);
     
@@ -97,7 +106,7 @@ class AssetService {
 
   async getAssetsByCategory(userId: string): Promise<{ category: string; total: number; count: number }[]> {
     const result = await Asset.aggregate([
-      { $match: { userId: userId as any } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
       {
         $group: {
           _id: "$category",

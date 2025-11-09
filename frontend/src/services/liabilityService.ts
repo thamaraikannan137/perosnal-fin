@@ -1,64 +1,106 @@
 import type { Liability, LiabilityCreateInput, LiabilityUpdateInput } from '../types';
-import { mockLiabilities } from '../data/financialData';
+import { apiClient } from './api';
 
-const simulateLatency = async <T>(data: T, delay = 300): Promise<T> => {
-  await new Promise((resolve) => setTimeout(resolve, delay));
-  return JSON.parse(JSON.stringify(data)) as T;
-};
+// API Response types matching backend
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
 
-let liabilityData: Liability[] = [...mockLiabilities];
+interface LiabilitiesResponse {
+  liabilities: Liability[];
+  total: number;
+  pages: number;
+}
 
-const generateId = () => {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID();
-  }
-  return Math.random().toString(36).substring(2, 10);
+interface LiabilityResponse {
+  liability: Liability;
+}
+
+// Transform backend _id to frontend id
+const transformLiability = (liability: any): Liability => {
+  return {
+    ...liability,
+    id: liability._id || liability.id,
+  };
 };
 
 export const liabilityService = {
-  async getLiabilities(): Promise<Liability[]> {
-    return simulateLatency(liabilityData);
+  async getLiabilities(page: number = 1, limit: number = 50, category?: string): Promise<Liability[]> {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+      
+      if (category) {
+        params.append('category', category);
+      }
+
+      const response = await apiClient.get<ApiResponse<LiabilitiesResponse>>(
+        `/liabilities?${params.toString()}`
+      );
+      
+      return response.data.liabilities.map(transformLiability);
+    } catch (error) {
+      console.error('Error fetching liabilities:', error);
+      throw error;
+    }
   },
 
   async getLiabilityById(id: string): Promise<Liability | undefined> {
-    const liability = liabilityData.find((item) => item.id === id);
-    return simulateLatency(liability);
+    try {
+      const response = await apiClient.get<ApiResponse<LiabilityResponse>>(`/liabilities/${id}`);
+      return transformLiability(response.data.liability);
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return undefined;
+      }
+      console.error('Error fetching liability:', error);
+      throw error;
+    }
   },
 
   async createLiability(payload: LiabilityCreateInput): Promise<Liability> {
-    const newLiability: Liability = {
-      ...payload,
-      id: generateId(),
-      updatedAt: new Date().toISOString(),
-    };
-    liabilityData = [...liabilityData, newLiability];
-    return simulateLatency(newLiability);
+    try {
+      const response = await apiClient.post<ApiResponse<LiabilityResponse>>('/liabilities', payload);
+      return transformLiability(response.data.liability);
+    } catch (error) {
+      console.error('Error creating liability:', error);
+      throw error;
+    }
   },
 
   async updateLiability(id: string, payload: LiabilityUpdateInput): Promise<Liability> {
-    let updatedLiability: Liability | undefined;
-    liabilityData = liabilityData.map((liability) => {
-      if (liability.id === id) {
-        updatedLiability = {
-          ...liability,
-          ...payload,
-          updatedAt: new Date().toISOString(),
-        };
-        return updatedLiability;
-      }
-      return liability;
-    });
-
-    if (!updatedLiability) {
-      throw new Error('Liability not found');
+    try {
+      const response = await apiClient.put<ApiResponse<LiabilityResponse>>(`/liabilities/${id}`, payload);
+      return transformLiability(response.data.liability);
+    } catch (error) {
+      console.error('Error updating liability:', error);
+      throw error;
     }
-
-    return simulateLatency(updatedLiability);
   },
 
   async deleteLiability(id: string): Promise<string> {
-    liabilityData = liabilityData.filter((liability) => liability.id !== id);
-    return simulateLatency(id);
+    try {
+      await apiClient.delete(`/liabilities/${id}`);
+      return id;
+    } catch (error) {
+      console.error('Error deleting liability:', error);
+      throw error;
+    }
+  },
+
+  async getLiabilitySummary(): Promise<{ totalBalance: number; byCategory: any[] }> {
+    try {
+      const response = await apiClient.get<ApiResponse<{ totalBalance: number; byCategory: any[] }>>(
+        '/liabilities/summary'
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching liability summary:', error);
+      throw error;
+    }
   },
 };
-

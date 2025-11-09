@@ -4,7 +4,7 @@ export interface IAsset extends Document {
   _id: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   name: string;
-  category: 'cash' | 'bank' | 'investment' | 'property' | 'vehicle' | 'jewelry' | 'other' | 'custom';
+  category: string; // Flexible - accepts any category string
   value: number;
   purchaseDate?: string;
   location?: string;
@@ -41,8 +41,9 @@ const assetSchema = new Schema<IAsset>(
     },
     category: {
       type: String,
-      enum: ['cash', 'bank', 'investment', 'property', 'vehicle', 'jewelry', 'other', 'custom'],
       required: [true, "Category is required"],
+      trim: true,
+      // No enum - allows any category including custom ones
     },
     value: {
       type: Number,

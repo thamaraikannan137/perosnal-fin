@@ -10,7 +10,7 @@ export interface NavItemType {
 export const navigationItems: NavItemType[] = [
   {
     title: "Dashboard",
-    path: "/",
+    path: "/dashboard",
     icon: "Dashboard",
   },
   {

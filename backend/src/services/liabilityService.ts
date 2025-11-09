@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Liability, { type ILiability } from "../models/Liability.js";
 import { NotFoundError } from "../utils/errors.js";
 
@@ -30,12 +31,20 @@ export interface UpdateLiabilityData {
 
 class LiabilityService {
   async createLiability(data: CreateLiabilityData): Promise<ILiability> {
-    const liability = await Liability.create(data);
+    // Convert userId string to ObjectId
+    const liabilityData = {
+      ...data,
+      userId: new mongoose.Types.ObjectId(data.userId),
+    };
+    const liability = await Liability.create(liabilityData);
     return liability;
   }
 
   async getLiabilityById(id: string, userId: string): Promise<ILiability> {
-    const liability = await Liability.findOne({ _id: id, userId });
+    const liability = await Liability.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+      userId: new mongoose.Types.ObjectId(userId)
+    });
     if (!liability) {
       throw new NotFoundError("Liability not found");
     }
@@ -49,7 +58,7 @@ class LiabilityService {
     category?: string
   ): Promise<{ liabilities: ILiability[]; total: number; pages: number }> {
     const skip = (page - 1) * limit;
-    const query: any = { userId };
+    const query: any = { userId: new mongoose.Types.ObjectId(userId) };
     
     if (category) {
       query.category = category;
@@ -86,7 +95,7 @@ class LiabilityService {
 
   async getTotalBalance(userId: string): Promise<number> {
     const result = await Liability.aggregate([
-      { $match: { userId: userId as any } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
       { $group: { _id: null, total: { $sum: "$balance" } } }
     ]);
     
@@ -95,7 +104,7 @@ class LiabilityService {
 
   async getLiabilitiesByCategory(userId: string): Promise<{ category: string; total: number; count: number }[]> {
     const result = await Liability.aggregate([
-      { $match: { userId: userId as any } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
       {
         $group: {
           _id: "$category",
