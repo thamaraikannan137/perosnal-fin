@@ -1,8 +1,8 @@
 import { TextField, InputAdornment } from '@mui/material';
-import type { AssetFieldDefinition } from '../../../config/assetFieldsConfig';
+import type { FormFieldDefinition } from '../../../types/formField';
 
-interface DynamicFieldRendererProps {
-  field: AssetFieldDefinition;
+interface DynamicFieldRendererProps<TField extends FormFieldDefinition = FormFieldDefinition> {
+  field: TField;
   value: unknown;
   onChange: (fieldName: string, value: string | number | undefined) => void;
   error?: string;
@@ -12,12 +12,12 @@ interface DynamicFieldRendererProps {
  * Renders a single field based on its configuration
  * Automatically determines the correct input type and props
  */
-export const DynamicFieldRenderer = ({
+export const DynamicFieldRenderer = <TField extends FormFieldDefinition = FormFieldDefinition>({
   field,
   value,
   onChange,
   error,
-}: DynamicFieldRendererProps) => {
+}: DynamicFieldRendererProps<TField>) => {
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue: string | number | undefined = e.target.value;

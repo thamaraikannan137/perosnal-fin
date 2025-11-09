@@ -20,6 +20,7 @@ import type {
 import { Button, CustomFieldsRenderer } from '../../common';
 import { customCategoryService } from '../../../services/customCategoryService';
 import { liabilityCategoryOptions, liabilityCategoryLabels } from '../../../config/categoryConfig';
+import { DefaultLiabilityForm } from './DefaultLiabilityForm';
 
 type LiabilityFormValues = LiabilityCreateInput;
 
@@ -111,19 +112,10 @@ export const LiabilityFormDialog = ({
     }
   }, [initialLiability, customCategoryTemplates]);
 
-  const handleChange = (field: keyof LiabilityFormValues) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    let parsedValue: unknown = value;
-
-    if (field === 'balance') {
-      parsedValue = Number(value);
-    } else if (field === 'interestRate') {
-      parsedValue = value === '' ? undefined : Number(value);
-    }
-
+  const handleFieldChange = (fieldName: string, value: string | number | undefined) => {
     setFormValues((prev) => ({
       ...prev,
-      [field]: parsedValue,
+      [fieldName]: value,
     }));
   };
 
@@ -211,15 +203,6 @@ export const LiabilityFormDialog = ({
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <TextField
-            label="Name"
-            value={formValues.name}
-            onChange={handleChange('name')}
-            error={Boolean(errors.name)}
-            helperText={errors.name}
-            fullWidth
-            required
-          />
-          <TextField
             label="Category"
             select
             value={selectedCustomCategoryId || formValues.category}
@@ -246,60 +229,14 @@ export const LiabilityFormDialog = ({
               ))
             ]}
           </TextField>
-          <TextField
-            label="Balance"
-            type="number"
-            value={formValues.balance}
-            onChange={handleChange('balance')}
-            error={Boolean(errors.balance)}
-            helperText={errors.balance}
-            fullWidth
-            required
-            inputProps={{ min: 0 }}
-          />
-          <TextField
-            label="Interest Rate (%)"
-            type="number"
-            value={formValues.interestRate ?? ''}
-            onChange={handleChange('interestRate')}
-            error={Boolean(errors.interestRate)}
-            helperText={errors.interestRate}
-            fullWidth
-            inputProps={{ min: 0, step: 0.1 }}
-          />
-          <TextField
-            label="Due Date"
-            type="date"
-            value={formValues.dueDate ?? ''}
-            onChange={handleChange('dueDate')}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            label="Institution"
-            value={formValues.institution}
-            onChange={handleChange('institution')}
-            fullWidth
-          />
-          <TextField
-            label="Owner"
-            value={formValues.owner}
-            onChange={handleChange('owner')}
-            error={Boolean(errors.owner)}
-            helperText={errors.owner}
-            fullWidth
-            required
-          />
-          <TextField
-            label="Notes"
-            value={formValues.notes}
-            onChange={handleChange('notes')}
-            fullWidth
-            multiline
-            minRows={3}
+          {/* Custom Fields */}
+          <DefaultLiabilityForm
+            category={formValues.category}
+            formValues={formValues}
+            errors={errors}
+            onChange={handleFieldChange}
           />
 
-          {/* Custom Fields */}
           {formValues.category === 'custom' && customFields.length > 0 && (
             <CustomFieldsRenderer
               customFields={customFields}

@@ -1,34 +1,8 @@
 import type { AssetCategory } from '../types';
+import type { FormFieldDefinition, FormFieldType } from '../types/formField';
 
-/**
- * Field type for rendering different input types
- */
-export type AssetFieldType = 
-  | 'text'
-  | 'number'
-  | 'date'
-  | 'currency'
-  | 'percentage'
-  | 'textarea'
-  | 'email'
-  | 'url'
-  | 'tel';
-
-/**
- * Complete field definition for dynamic rendering
- */
-export interface AssetFieldDefinition {
-  fieldName: string;
-  type: AssetFieldType;
-  label: string;
-  placeholder?: string;
-  required?: boolean;
-  helperText?: string;
-  min?: number;
-  max?: number;
-  step?: number;
-  minRows?: number;
-}
+export type AssetFieldType = FormFieldType;
+export type AssetFieldDefinition = FormFieldDefinition;
 
 /**
  * Configuration for each asset category with complete field definitions

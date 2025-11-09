@@ -1,93 +1,59 @@
 import type { LiabilityCategory } from '../types';
+import type { FormFieldDefinition, FormFieldType } from '../types/formField';
+
+export type LiabilityFieldType = FormFieldType;
+export type LiabilityFieldDefinition = FormFieldDefinition;
 
 export type LiabilityFieldName =
   | 'interestRate'
   | 'dueDate'
   | 'institution';
 
-export interface LiabilityCategoryFieldConfig {
-  category: LiabilityCategory;
-  fields: LiabilityFieldName[];
-  description?: string;
-}
-
-/**
- * Configuration for which fields are visible for each liability category
- * Easy to maintain and extend - just add/remove fields from the arrays
- */
-export const liabilityFieldsConfig: Record<LiabilityCategory, LiabilityFieldName[]> = {
-  // Credit Card
-  credit: [
-    'institution',
-    'dueDate',
-    'interestRate',
-  ],
-
-  // Loan - Personal, auto, education loans
-  loan: [
-    'institution',
-    'dueDate',
-    'interestRate',
-  ],
-
-  // Mortgage - Home loans
-  mortgage: [
-    'institution',
-    'dueDate',
-    'interestRate',
-  ],
-
-  // Tax - Tax liabilities
-  tax: [
-    'dueDate',
-  ],
-
-  // Other
-  other: [
-    'dueDate',
-  ],
-
-  // Custom - User-defined categories (uses custom fields instead)
-  custom: [],
-};
-
-/**
- * Helper function to check if a field should be shown for a given category
- */
-export const shouldShowFieldForLiabilityCategory = (
-  category: LiabilityCategory,
-  fieldName: LiabilityFieldName
-): boolean => {
-  const fields = liabilityFieldsConfig[category];
-  return fields.includes(fieldName);
-};
-
-/**
- * Get all fields for a specific category
- */
-export const getFieldsForLiabilityCategory = (category: LiabilityCategory): LiabilityFieldName[] => {
-  return liabilityFieldsConfig[category] || [];
-};
-
-/**
- * Field metadata for display purposes
- */
-export const liabilityFieldMetadata: Record<LiabilityFieldName, {
-  label: string;
-  helperText?: string;
-  placeholder?: string;
-}> = {
+const liabilityFieldDefinitions: Record<LiabilityFieldName, LiabilityFieldDefinition> = {
   interestRate: {
+    fieldName: 'interestRate',
+    type: 'percentage',
     label: 'Interest Rate (%)',
     placeholder: 'Enter interest rate',
+    helperText: 'Annual interest rate (optional)',
+    min: 0,
+    max: 100,
+    step: 0.1,
   },
   dueDate: {
+    fieldName: 'dueDate',
+    type: 'date',
     label: 'Due Date',
+    helperText: 'Next payment due date',
   },
   institution: {
+    fieldName: 'institution',
+    type: 'text',
     label: 'Institution',
     helperText: 'Bank or financial institution name',
     placeholder: 'Enter institution name',
   },
 };
+
+/**
+ * Configuration for which fields are visible for each liability category
+ */
+export const liabilityFieldsConfig: Record<LiabilityCategory, LiabilityFieldName[]> = {
+  credit: ['institution', 'dueDate', 'interestRate'],
+  loan: ['institution', 'dueDate', 'interestRate'],
+  mortgage: ['institution', 'dueDate', 'interestRate'],
+  tax: ['dueDate'],
+  other: ['dueDate'],
+  custom: [],
+};
+
+export const getLiabilityFieldDefinition = (fieldName: LiabilityFieldName): LiabilityFieldDefinition =>
+  liabilityFieldDefinitions[fieldName];
+
+export const getLiabilityFieldDefinitionsForCategory = (
+  category: LiabilityCategory
+): LiabilityFieldDefinition[] => {
+  return (liabilityFieldsConfig[category] || []).map((fieldName) => liabilityFieldDefinitions[fieldName]);
+};
+
 
